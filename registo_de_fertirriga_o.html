@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AgroControl - Registo de Fertirrigação</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        /* Estilo rigoroso de limites e bordas para tabelas */
+        .table-agri {
+            border-collapse: collapse !important;
+            width: 100%;
+        }
+        .table-agri th, .table-agri td {
+            border: 1px solid #cbd5e1 !important;
+            padding: 8px 6px;
+            text-align: center;
+            font-size: 0.8125rem;
+        }
+        .table-agri th {
+            background-color: #065f46;
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .keypad-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            background-color: #ffffff;
+            color: #1e293b;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            border: 1px solid #cbd5e1;
+            user-select: none;
+            height: 3.5rem;
+            transition: all 0.1s;
+        }
+        .keypad-btn:active {
+            background-color: #d1fae5;
+            transform: scale(0.96);
+        }
+        .field-active {
+            border-color: #059669 !important;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.25) !important;
+            background-color: #ecfdf5 !important;
+        }
+        .table-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col pb-10">
+
+    <!-- TOP HEADER -->
+    <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-seedling text-2xl text-emerald-300"></i>
+                <div>
+                    <h1 class="text-xl font-black tracking-tight leading-none">AgroControl</h1>
+                    <span class="text-xs text-emerald-200">Fertirrigação & Drenagem</span>
+                </div>
+            </div>
+
+            <!-- SYNC STATUS BADGE -->
+            <div id="sync-status-badge" class="text-xs bg-slate-700 text-slate-200 font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-inner">
+                <i class="fa-solid fa-arrows-rotate animate-spin"></i> A inicializar...
+            </div>
+        </div>
+
+        <!-- NAVIGATION TABS -->
+        <nav class="flex bg-emerald-900 text-sm font-semibold border-t border-emerald-700/50">
+            <button onclick="switchTab('registos')" id="tab-btn-registos" class="flex-1 py-3 text-center border-b-4 border-emerald-400 text-white flex items-center justify-center gap-2">
+                <i class="fa-solid fa-pen-to-square"></i> ✍️ Registos
+            </button>
+            <button onclick="switchTab('historico')" id="tab-btn-historico" class="flex-1 py-3 text-center border-b-4 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left"></i> 📜 Histórico
+            </button>
+            <button onclick="switchTab('piquetas')" id="tab-btn-piquetas" class="flex-1 py-3 text-center border-b-4 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-2">
+                <i class="fa-solid fa-location-dot"></i> 📍 Nº Piquetas
+            </button>
+        </nav>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-2 sm:px-4 mt-4 flex-grow w-full">
+
+        <!-- ========================================== -->
+        <!-- TAB 1: REGISTOS -->
+        <!-- ========================================== -->
+        <section id="tab-registos" class="space-y-6">
+
+            <!-- VALVE SELECTOR (1 to 10) -->
+            <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200">
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
+                    <i class="fa-solid fa-faucet-drip text-emerald-600"></i> Seleccionar Válvula de Rega:
+                </label>
+                <div class="grid grid-cols-5 sm:grid-cols-10 gap-2" id="valve-buttons-container">
+                    <!-- Gerado Dinamicamente -->
+                </div>
+            </div>
+
+            <!-- ENTRY FORM WITH KEYPAD -->
+            <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span id="selected-valve-badge" class="bg-emerald-600 text-white font-black text-sm px-3 py-1 rounded-lg shadow-sm">
+                            Válvula 1
+                        </span>
+                        <span id="valve-pins-indicator" class="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
+                            (-- piquetas)
+                        </span>
+                    </div>
+                    <button onclick="resetCurrentForm()" class="text-xs font-bold text-red-600 hover:text-red-800 bg-red-50 px-3 py-1.5 rounded-lg border border-red-200 transition">
+                        <i class="fa-solid fa-rotate-left"></i> Limpar Campos
+                    </button>
+                </div>
+
+                <!-- 9 HORIZONTAL ENTRY FIELDS -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    
+                    <!-- PIQUETA -->
+                    <div class="bg-emerald-50/60 p-3 rounded-xl border border-emerald-200 space-y-2">
+                        <div class="font-bold text-emerald-900 text-xs text-center border-b border-emerald-200 pb-1 flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-droplet text-emerald-600"></i> PIQUETA
+                        </div>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 text-center">Litros</label>
+                                <input type="text" id="input-piq_litros" readonly onclick="setActiveField('piq_litros')" class="w-full text-center font-bold text-base py-2 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 text-center">EC</label>
+                                <input type="text" id="input-piq_ec" readonly onclick="setActiveField('piq_ec')" class="w-full text-center font-bold text-base py-2 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 text-center">pH</label>
+                                <input type="text" id="input-piq_ph" readonly onclick="setActiveField('piq_ph')" class="w-full text-center font-bold text-base py-2 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BALDE 1 -->
+                    <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-200 space-y-2">
+                        <div class="flex justify-between items-center border-b border-blue-200 pb-1">
+                            <span class="font-bold text-blue-900 text-xs flex items-center gap-1"><i class="fa-solid fa-bucket text-blue-600"></i> BALDE 1</span>
+                            <span id="live-dr1" class="text-[11px] font-black bg-blue-200 text-blue-900 px-2 py-0.5 rounded shadow-sm">DR1: 0%</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 text-center">Litros</label>
+                                <input type="text" id="input-b1_litros" readonly onclick="setActiveField('b1_litros')" class="w-full text-center font-bold text-base py-2 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 text-center">EC</label>
+                                <input type="text" id="input-b1_ec" readonly onclick="setActiveField('b1_ec')" class="w-full text-center font-bold text-base py-2 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 text-center">pH</label>
+                                <input type="text" id="input-b1_ph" readonly onclick="setActiveField('b1_ph')" class="w-full text-center font-bold text-base py-2 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BALDE 2 -->
+                    <div class="bg-purple-50/60 p-3 rounded-xl border border-purple-200 space-y-2">
+                        <div class="flex justify-between items-center border-b border-purple-200 pb-1">
+                            <span class="font-bold text-purple-900 text-xs flex items-center gap-1"><i class="fa-solid fa-bucket text-purple-600"></i> BALDE 2</span>
+                            <span id="live-dr2" class="text-[11px] font-black bg-purple-200 text-purple-900 px-2 py-0.5 rounded shadow-sm">DR2: 0%</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 text-center">Litros</label>
+                                <input type="text" id="input-b2_litros" readonly onclick="setActiveField('b2_litros')" class="w-full text-center font-bold text-base py-2 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 text-center">EC</label>
+                                <input type="text" id="input-b2_ec" readonly onclick="setActiveField('b2_ec')" class="w-full text-center font-bold text-base py-2 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 text-center">pH</label>
+                                <input type="text" id="input-b2_ph" readonly onclick="setActiveField('b2_ph')" class="w-full text-center font-bold text-base py-2 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- EMBEDDED NUMERIC KEYPAD -->
+                <div class="bg-slate-200/80 p-3 rounded-2xl border border-slate-300 max-w-md mx-auto mt-3 shadow-sm">
+                    <div class="grid grid-cols-3 gap-2 mb-2">
+                        <button onclick="keypadInput('1')" class="keypad-btn">1</button>
+                        <button onclick="keypadInput('2')" class="keypad-btn">2</button>
+                        <button onclick="keypadInput('3')" class="keypad-btn">3</button>
+
+                        <button onclick="keypadInput('4')" class="keypad-btn">4</button>
+                        <button onclick="keypadInput('5')" class="keypad-btn">5</button>
+                        <button onclick="keypadInput('6')" class="keypad-btn">6</button>
+
+                        <button onclick="keypadInput('7')" class="keypad-btn">7</button>
+                        <button onclick="keypadInput('8')" class="keypad-btn">8</button>
+                        <button onclick="keypadInput('9')" class="keypad-btn">9</button>
+
+                        <button onclick="keypadClearField()" class="keypad-btn bg-amber-500 text-white active:bg-amber-600 text-xl font-bold">C</button>
+                        <button onclick="keypadInput('0')" class="keypad-btn">0</button>
+                        <button onclick="keypadBackspace()" class="keypad-btn bg-slate-600 text-white active:bg-slate-700 text-xl font-bold">⌫</button>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="nextField()" class="bg-slate-800 text-white font-bold py-3 px-4 rounded-xl shadow active:scale-95 transition flex items-center justify-center gap-2 text-sm sm:text-base">
+                            Próximo Campo ➡️
+                        </button>
+                        <button onclick="saveRecord()" class="bg-emerald-600 text-white font-black py-3 px-4 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2 text-sm sm:text-base hover:bg-emerald-700">
+                            <i class="fa-solid fa-floppy-disk"></i> GUARDAR
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TODAY'S READINGS TABLE -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-sm font-extrabold text-slate-700 flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-day text-emerald-600"></i> Registos de Hoje (<span id="today-date-label">--/--/----</span>)
+                    </h2>
+                    <span id="today-count-badge" class="bg-emerald-100 text-emerald-800 font-bold text-xs px-2.5 py-1 rounded-full">0 registos</span>
+                </div>
+
+                <div class="overflow-x-auto table-container rounded-xl border border-slate-300">
+                    <table class="table-agri bg-white text-slate-700">
+                        <thead>
+                            <tr>
+                                <th>Válvula</th>
+                                <th>Hora</th>
+                                <th>Piq Litros</th>
+                                <th>Piq EC</th>
+                                <th>Piq pH</th>
+                                <th>B1 Litros</th>
+                                <th>B1 EC</th>
+                                <th>B1 pH</th>
+                                <th class="bg-blue-100 text-blue-900 font-black">DR1 (%)</th>
+                                <th>B2 Litros</th>
+                                <th>B2 EC</th>
+                                <th>B2 pH</th>
+                                <th class="bg-purple-100 text-purple-900 font-black">DR2 (%)</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="today-table-body">
+                            <!-- Renderizado Dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: HISTÓRICO -->
+        <!-- ========================================== -->
+        <section id="tab-historico" class="space-y-4 hidden">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <h2 class="text-sm font-extrabold text-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-filter text-emerald-600"></i> Filtrar Histórico de Leituras
+                </h2>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Válvula</label>
+                        <select id="hist-valve" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm font-semibold">
+                            <option value="ALL">Todas as Válvulas</option>
+                            <script>
+                                for(let i=1; i<=10; i++) document.write(`<option value="${i}">Válvula ${i}</option>`);
+                            </script>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Data Início</label>
+                        <input type="date" id="hist-start" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-sm font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Data Fim</label>
+                        <input type="date" id="hist-end" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-sm font-semibold">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <button onclick="renderHistoryTable()" class="bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl shadow hover:bg-emerald-700 text-sm">
+                        <i class="fa-solid fa-magnifying-glass"></i> Aplicar Filtros
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <div class="overflow-x-auto table-container rounded-xl border border-slate-300">
+                    <table class="table-agri bg-white text-slate-700">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Hora</th>
+                                <th>Válvula</th>
+                                <th>Piq Litros</th>
+                                <th>Piq EC</th>
+                                <th>Piq pH</th>
+                                <th>B1 Litros</th>
+                                <th>B1 EC</th>
+                                <th>B1 pH</th>
+                                <th class="bg-blue-100 text-blue-900 font-black">DR1 (%)</th>
+                                <th>B2 Litros</th>
+                                <th>B2 EC</th>
+                                <th>B2 pH</th>
+                                <th class="bg-purple-100 text-purple-900 font-black">DR2 (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <!-- Renderizado Dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: NÚMERO PIQUETAS -->
+        <!-- ========================================== -->
+        <section id="tab-piquetas" class="space-y-4 hidden">
+            <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-emerald-100 text-emerald-800 p-3 rounded-2xl">
+                        <i class="fa-solid fa-location-dot text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-black text-slate-800">Configuração de Piquetas por Válvula</h2>
+                        <p class="text-xs text-slate-500">Este valor é utilizado automaticamente no cálculo das percentagens de drenagem (DR1 e DR2).</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2" id="piquetas-config-container">
+                    <!-- Gerado Dinamicamente -->
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button onclick="savePiquetasConfig()" class="bg-emerald-600 text-white font-black px-6 py-3 rounded-xl shadow-lg hover:bg-emerald-700 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar Configuração
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3 transform translate-y-28 opacity-0 transition-all duration-300 z-50">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
+        <span id="toast-msg" class="text-sm font-bold">Sucesso!</span>
+    </div>
+
+    <!-- MAIN APP SCRIPT -->
+    <script>
+        // CONFIGURAÇÃO DO GOOGLE SHEETS (COLOCA AQUI O TEU URL /exec)
+        const SHEETS_URL = 'https://script.google.com/macros/s/SEU_SCRIPT_ID_AQUI/exec';
+
+        const fieldsOrder = ['piq_litros', 'piq_ec', 'piq_ph', 'b1_litros', 'b1_ec', 'b1_ph', 'b2_litros', 'b2_ec', 'b2_ph'];
+        let activeField = 'piq_litros';
+        let currentValve = 1;
+        let formValues = {
+            piq_litros: '', piq_ec: '', piq_ph: '',
+            b1_litros: '', b1_ec: '', b1_ph: '',
+            b2_litros: '', b2_ec: '', b2_ph: ''
+        };
+
+        let piquetasConfig = {};
+        let recordsData = [];
+
+        window.onload = function() {
+            loadPiquetasConfig();
+            loadRecords();
+            renderValveButtons();
+            renderPiquetasConfigUI();
+            setActiveField('piq_litros');
+            
+            const hoje = new Date().toISOString().split('T')[0];
+            document.getElementById('hist-start').value = hoje;
+            document.getElementById('hist-end').value = hoje;
+            document.getElementById('today-date-label').innerText = formatDatePt(hoje);
+
+            renderTodayTable();
+            sincronizarComSheets();
+            setInterval(sincronizarComSheets, 30000); // Tenta sincronizar a cada 30s em segundo plano
+        };
+
+        // --- NAVEGAÇÃO ENTRE ABAS ---
+        function switchTab(tab) {
+            ['registos', 'historico', 'piquetas'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const btn = document.getElementById(`tab-btn-${t}`);
+                btn.className = "flex-1 py-3 text-center border-b-4 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-2";
+            });
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tab}`);
+            activeBtn.className = "flex-1 py-3 text-center border-b-4 border-emerald-400 text-white flex items-center justify-center gap-2 font-bold";
+
+            if(tab === 'historico') renderHistoryTable();
+        }
+
+        // --- GERIR VÁLVULAS ---
+        function renderValveButtons() {
+            const container = document.getElementById('valve-buttons-container');
+            container.innerHTML = '';
+            for(let i=1; i<=10; i++) {
+                const isSelected = i === currentValve;
+                container.innerHTML += `
+                    <button onclick="selectValve(${i})" class="py-3 px-1 rounded-xl font-black text-sm transition-all shadow-sm border ${isSelected ? 'bg-emerald-600 text-white border-emerald-700 shadow-md scale-105' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                        V${i}
+                    </button>
+                `;
+            }
+        }
+
+        function selectValve(v) {
+            currentValve = v;
+            renderValveButtons();
+            document.getElementById('selected-valve-badge').innerText = `Válvula ${v}`;
+            const np = piquetasConfig[`v${v}`] || 10;
+            document.getElementById('valve-pins-indicator').innerText = `(${np} piquetas)`;
+            updateLiveDrainages();
+        }
+
+        // --- CONFIGURAÇÃO DE PIQUETAS ---
+        function loadPiquetasConfig() {
+            const saved = localStorage.getItem('agro_piquetas_cfg');
+            if(saved) {
+                try { piquetasConfig = JSON.parse(saved); } catch(e) { piquetasConfig = {}; }
+            }
+            for(let i=1; i<=10; i++) {
+                if(!piquetasConfig[`v${i}`]) piquetasConfig[`v${i}`] = 10;
+            }
+        }
+
+        function renderPiquetasConfigUI() {
+            const container = document.getElementById('piquetas-config-container');
+            container.innerHTML = '';
+            for(let i=1; i<=10; i++) {
+                container.innerHTML += `
+                    <div class="flex items-center justify-between bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <span class="font-bold text-sm text-slate-700">Válvula ${i}</span>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-slate-500 font-semibold">Piquetas:</label>
+                            <input type="number" id="cfg-v${i}" value="${piquetasConfig[`v${i}`]}" min="1" class="w-20 text-center font-bold text-base bg-white border border-slate-300 rounded-lg py-1">
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function savePiquetasConfig() {
+            for(let i=1; i<=10; i++) {
+                const val = parseInt(document.getElementById(`cfg-v${i}`).value) || 10;
+                piquetasConfig[`v${i}`] = val;
+            }
+            localStorage.setItem('agro_piquetas_cfg', JSON.stringify(piquetasConfig));
+            selectValve(currentValve);
+            showToast('Configuração de piquetas guardada!');
+            renderTodayTable();
+        }
+
+        // --- INPUTS E TECLADO TÁTIL ---
+        function setActiveField(fieldName) {
+            activeField = fieldName;
+            fieldsOrder.forEach(f => {
+                const el = document.getElementById(`input-${f}`);
+                if(el) el.classList.remove('field-active');
+            });
+            const activeEl = document.getElementById(`input-${fieldName}`);
+            if(activeEl) activeEl.classList.add('field-active');
+        }
+
+        function keypadInput(digit) {
+            let val = formValues[activeField] || '';
+            if(val.length >= 5) return; // Limite razoável
+            val += digit;
+            formValues[activeField] = val;
+            updateFieldDisplay(activeField);
+            updateLiveDrainages();
+        }
+
+        function keypadBackspace() {
+            let val = formValues[activeField] || '';
+            if(val.length > 0) {
+                val = val.slice(0, -1);
+                formValues[activeField] = val;
+                updateFieldDisplay(activeField);
+                updateLiveDrainages();
+            }
+        }
+
+        function keypadClearField() {
+            formValues[activeField] = '';
+            updateFieldDisplay(activeField);
+            updateLiveDrainages();
+        }
+
+        function updateFieldDisplay(fieldName) {
+            const raw = formValues[fieldName];
+            const el = document.getElementById(`input-${fieldName}`);
+            if(!el) return;
+            if(!raw) {
+                el.value = '';
+                return;
+            }
+            // Decimais implícitos: 7 vira 0.7, 70 vira 7.0
+            const num = parseInt(raw, 10) || 0;
+            el.value = (num / 10).toFixed(1);
+        }
+
+        function nextField() {
+            const idx = fieldsOrder.indexOf(activeField);
+            if(idx < fieldsOrder.length - 1) {
+                setActiveField(fieldsOrder[idx + 1]);
+            } else {
+                setActiveField(fieldsOrder[0]); // Volta ao início
+            }
+        }
+
+        function resetCurrentForm() {
+            fieldsOrder.forEach(f => {
+                formValues[f] = '';
+                updateFieldDisplay(f);
+            });
+            setActiveField(fieldsOrder[0]);
+            updateLiveDrainages();
+        }
+
+        // --- CÁLCULO DE DRENAGEM ---
+        function calculateDrainage(baldeLitrosNum, piqLitrosNum, numPiquetas) {
+            if(!piqLitrosNum || !numPiquetas || piqLitrosNum <= 0 || numPiquetas <= 0 || baldeLitrosNum < 0) return 0;
+            const totalPiq = numPiquetas * piqLitrosNum;
+            if(totalPiq === 0) return 0;
+            return Math.round((baldeLitrosNum / totalPiq) * 100);
+        }
+
+        function updateLiveDrainages() {
+            const np = piquetasConfig[`v${currentValve}`] || 10;
+            
+            const pL = parseFloat(document.getElementById('input-piq_litros').value) || 0;
+            const b1L = parseFloat(document.getElementById('input-b1_litros').value) || 0;
+            const b2L = parseFloat(document.getElementById('input-b2_litros').value) || 0;
+
+            const dr1 = calculateDrainage(b1L, pL, np);
+            const dr2 = calculateDrainage(b2L, pL, np);
+
+            document.getElementById('live-dr1').innerText = `DR1: ${dr1}%`;
+            document.getElementById('live-dr2').innerText = `DR2: ${dr2}%`;
+        }
+
+        // --- GUARDAR E SINCRONIZAR REGISTOS ---
+        function loadRecords() {
+            const saved = localStorage.getItem('agro_records');
+            if(saved) {
+                try { recordsData = JSON.parse(saved); } catch(e) { recordsData = []; }
+            }
+        }
+
+        function saveRecord() {
+            const np = piquetasConfig[`v${currentValve}`] || 10;
+            
+            const pL = parseFloat(document.getElementById('input-piq_litros').value) || 0;
+            const b1L = parseFloat(document.getElementById('input-b1_litros').value) || 0;
+            const b2L = parseFloat(document.getElementById('input-b2_litros').value) || 0;
+
+            const dr1 = calculateDrainage(b1L, pL, np);
+            const dr2 = calculateDrainage(b2L, pL, np);
+
+            const agora = new Date();
+            const dataIso = agora.toISOString().split('T')[0];
+            const horaStr = agora.toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+
+            const record = {
+                id: 'REG-' + Date.now() + '-' + Math.floor(Math.random()*1000),
+                dataIso: dataIso,
+                dataHora: `${dataIso} ${horaStr}`,
+                valvula: currentValve,
+                piquetas: np,
+                piq_litros: pL,
+                piq_ec: parseFloat(document.getElementById('input-piq_ec').value) || 0,
+                piq_ph: parseFloat(document.getElementById('input-piq_ph').value) || 0,
+                b1_litros: b1L,
+                b1_ec: parseFloat(document.getElementById('input-b1_ec').value) || 0,
+                b1_ph: parseFloat(document.getElementById('input-b1_ph').value) || 0,
+                dr1: dr1,
+                b2_litros: b2L,
+                b2_ec: parseFloat(document.getElementById('input-b2_ec').value) || 0,
+                b2_ph: parseFloat(document.getElementById('input-b2_ph').value) || 0,
+                dr2: dr2,
+                sync: false
+            };
+
+            recordsData.push(record);
+            localStorage.setItem('agro_records', JSON.stringify(recordsData));
+
+            resetCurrentForm();
+            renderTodayTable();
+            showToast('Registo guardado com sucesso!');
+            sincronizarComSheets();
+        }
+
+        function renderTodayTable() {
+            const hoje = new Date().toISOString().split('T')[0];
+            const tbody = document.getElementById('today-table-body');
+            const doDia = recordsData.filter(r => r.dataIso === hoje);
+
+            document.getElementById('today-count-badge').innerText = `${doDia.length} registos`;
+
+            if(doDia.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="14" class="text-center py-4 text-slate-400">Nenhum registo efetuado hoje.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            doDia.reverse().forEach((r, idx) => {
+                const hora = r.dataHora.split(' ')[1] || '';
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="font-bold">V${r.valvula}</td>
+                        <td>${hora}</td>
+                        <td>${r.piq_litros.toFixed(1)}</td>
+                        <td>${r.piq_ec.toFixed(1)}</td>
+                        <td>${r.piq_ph.toFixed(1)}</td>
+                        <td>${r.b1_litros.toFixed(1)}</td>
+                        <td>${r.b1_ec.toFixed(1)}</td>
+                        <td>${r.b1_ph.toFixed(1)}</td>
+                        <td class="bg-blue-50 font-black text-blue-900">${r.dr1}%</td>
+                        <td>${r.b2_litros.toFixed(1)}</td>
+                        <td>${r.b2_ec.toFixed(1)}</td>
+                        <td>${r.b2_ph.toFixed(1)}</td>
+                        <td class="bg-purple-50 font-black text-purple-900">${r.dr2}%</td>
+                        <td>
+                            <button onclick="deleteRecord('${r.id}')" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function deleteRecord(id) {
+            if(!confirm('Pretende apagar este registo?')) return;
+            recordsData = recordsData.filter(r => r.id !== id);
+            localStorage.setItem('agro_records', JSON.stringify(recordsData));
+            renderTodayTable();
+            showToast('Registo removido.');
+        }
+
+        function renderHistoryTable() {
+            const valvFiltro = document.getElementById('hist-valve').value;
+            const startFiltro = document.getElementById('hist-start').value;
+            const endFiltro = document.getElementById('hist-end').value;
+
+            const tbody = document.getElementById('history-table-body');
+            
+            let filtrados = recordsData.filter(r => {
+                if(valvFiltro !== 'ALL' && String(r.valvula) !== valvFiltro) return false;
+                if(startFiltro && r.dataIso < startFiltro) return false;
+                if(endFiltro && r.dataIso > endFiltro) return false;
+                return true;
+            });
+
+            if(filtrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="14" class="text-center py-4 text-slate-400">Sem registos encontrados para o filtro aplicado.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            filtrados.reverse().forEach(r => {
+                const dataPt = formatDatePt(r.dataIso);
+                const hora = r.dataHora.split(' ')[1] || '';
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="font-semibold">${dataPt}</td>
+                        <td>${hora}</td>
+                        <td class="font-bold">V${r.valvula}</td>
+                        <td>${r.piq_litros.toFixed(1)}</td>
+                        <td>${r.piq_ec.toFixed(1)}</td>
+                        <td>${r.piq_ph.toFixed(1)}</td>
+                        <td>${r.b1_litros.toFixed(1)}</td>
+                        <td>${r.b1_ec.toFixed(1)}</td>
+                        <td>${r.b1_ph.toFixed(1)}</td>
+                        <td class="bg-blue-50 font-black text-blue-900">${r.dr1}%</td>
+                        <td>${r.b2_litros.toFixed(1)}</td>
+                        <td>${r.b2_ec.toFixed(1)}</td>
+                        <td>${r.b2_ph.toFixed(1)}</td>
+                        <td class="bg-purple-50 font-black text-purple-900">${r.dr2}%</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- SINCRONIZAÇÃO COM GOOGLE SHEETS ---
+        async function sincronizarComSheets() {
+            if(!SHEETS_URL || SHEETS_URL.includes('SEU_SCRIPT_ID_AQUI')) {
+                updateSyncBadge('noconfig');
+                return;
+            }
+            if(!navigator.onLine) {
+                updateSyncBadge('offline');
+                return;
+            }
+
+            const pendentes = recordsData.filter(r => !r.sync);
+            if(pendentes.length === 0) {
+                updateSyncBadge('ok');
+                return;
+            }
+
+            try {
+                updateSyncBadge('enviando', pendentes.length);
+                const res = await fetch(SHEETS_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+                    body: JSON.stringify(pendentes)
+                });
+                const txt = await res.text();
+                if(res.ok && txt.trim() === 'ok') {
+                    pendentes.forEach(p => p.sync = true);
+                    localStorage.setItem('agro_records', JSON.stringify(recordsData));
+                    updateSyncBadge('ok');
+                } else {
+                    throw new Error(txt);
+                }
+            } catch(e) {
+                updateSyncBadge('erro', pendentes.length);
+            }
+        }
+
+        function updateSyncBadge(estado, qtd=0) {
+            const badge = document.getElementById('sync-status-badge');
+            if(!badge) return;
+            if(estado === 'ok') {
+                badge.className = 'text-xs bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-inner';
+                badge.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i> Sincronizado ✔';
+            } else if(estado === 'enviando') {
+                badge.className = 'text-xs bg-amber-600 text-white font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-inner animate-pulse';
+                badge.innerHTML = `<i class="fa-solid fa-arrows-rotate animate-spin"></i> A enviar ${qtd}...`;
+            } else if(estado === 'offline') {
+                badge.className = 'text-xs bg-slate-600 text-slate-200 font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-inner';
+                badge.innerHTML = '<i class="fa-solid fa-wifi-slash"></i> Offline (Guardado local)';
+            } else if(estado === 'noconfig') {
+                badge.className = 'text-xs bg-slate-700 text-slate-200 font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-inner';
+                badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Sheets por configurar';
+            } else {
+                badge.className = 'text-xs bg-red-600 text-white font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-inner';
+                badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${qtd} por sincronizar`;
+            }
+        }
+
+        window.addEventListener('online', sincronizarComSheets);
+
+        // --- UTILITÁRIOS ---
+        function formatDatePt(iso) {
+            if(!iso) return '';
+            const p = iso.split('-');
+            if(p.length !== 3) return iso;
+            return `${p[2]}/${p[1]}/${p[0]}`;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('translate-y-28', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-28', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
