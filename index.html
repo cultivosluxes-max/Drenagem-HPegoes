@@ -8,8 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SheetJS (XLSX) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Google Fonts (Inter) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -37,9 +35,9 @@
                 </div>
             </div>
 
-            <!-- BADGE DE STATUS DE SINCRONIZAÇÃO EM TEMPO REAL -->
-            <div id="sync-status-badge" class="text-xs bg-slate-700 text-slate-200 font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-inner">
-                <i class="fa-solid fa-arrows-rotate animate-spin"></i> A inicializar...
+            <!-- STATUS GOOGLE SHEETS -->
+            <div class="text-xs bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-inner">
+                <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i> Google Sheets Ativo
             </div>
         </div>
 
@@ -52,7 +50,7 @@
                 <i class="fa-solid fa-pen-to-square"></i> 📝 Inserir Registo
             </button>
             <button onclick="switchTab('aba3')" id="tab-btn-aba3" class="flex-1 py-3 px-4 text-center border-b-4 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-clock-rotate-left"></i> 📜 Histórico & Excel
+                <i class="fa-solid fa-clock-rotate-left"></i> 📜 Histórico
             </button>
             <button onclick="switchTab('aba4')" id="tab-btn-aba4" class="flex-1 py-3 px-4 text-center border-b-4 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-location-dot"></i> 📍 Nº Piquetas
@@ -224,17 +222,12 @@
             </div>
         </section>
 
-        <!-- ABA 3: HISTÓRICO & EXCEL -->
+        <!-- ABA 3: HISTÓRICO -->
         <section id="tab-aba3" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-100 pb-3">
-                    <h2 class="text-sm font-extrabold text-slate-700 flex items-center gap-2">
-                        <i class="fa-solid fa-filter text-emerald-600"></i> Histórico & Ficheiro Excel
-                    </h2>
-                    <button onclick="exportarExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow flex items-center gap-2">
-                        <i class="fa-solid fa-download"></i> Descarregar Copia Excel
-                    </button>
-                </div>
+                <h2 class="text-sm font-extrabold text-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-filter text-emerald-600"></i> Filtrar Histórico de Leituras
+                </h2>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
@@ -306,9 +299,12 @@
         <span id="toast-msg" class="text-sm font-bold">Sucesso!</span>
     </div>
 
+    <!-- IFRAME OCULTO PARA ENVIO DIRETO AO GOOGLE SHEETS SEM ERROS DE CORS -->
+    <iframe id="hidden-iframe" name="hidden-iframe" style="display:none;"></iframe>
+
     <script>
-        // COLOQUE AQUI O SEU LINK DO GOOGLE APPS SCRIPT / EXEC
-        const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxlnmPyItueeVKoiZFyj5sRsjcv0GTDsPJe5nSnb6Bz6NocTwhzZDdl4M8l-jUdvnOy/exec';
+        // O SEU LINK DO GOOGLE APPS SCRIPT
+        const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxwt3gUBCVyaoVdeR3ntsdw0dP9s9FO2hCOWa4P1z9tT6dReJskNbPYgpjHTArT5l71/exec';
 
         const fieldsOrder = ['piq_litros', 'piq_ec', 'piq_ph', 'b1_litros', 'b1_ec', 'b1_ph', 'b2_litros', 'b2_ec', 'b2_ph'];
         let activeField = 'piq_litros';
@@ -330,8 +326,6 @@
             document.getElementById('today-date-label').innerText = formatDatePt(hoje);
 
             renderTodayTable();
-            sincronizarComExcel();
-            setInterval(sincronizarComExcel, 30000); // Tenta reenviar registos pendentes a cada 30 segundos
         };
 
         function switchTab(tab) {
@@ -499,6 +493,26 @@
             if(saved) { try { recordsData = JSON.parse(saved); } catch(e) { recordsData = []; } }
         }
 
+        // --- ENVIAR DIRETAMENTE PARA O GOOGLE SHEETS VIA FORMULÁRIO OCULTO ---
+        function enviarParaGoogleSheets(reg) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = SHEETS_URL;
+            form.target = 'hidden-iframe';
+
+            for (const key in reg) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = reg[key];
+                form.appendChild(input);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+        }
+
         function saveRecord() {
             const np = piquetasConfig[`v${currentValve}`] || 10;
             const pL = parseFloat(document.getElementById('input-piq_litros').value) || 0;
@@ -513,9 +527,9 @@
             const horaStr = agora.toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
 
             const record = {
-                id: 'REG-' + Date.now() + '-' + Math.floor(Math.random()*1000),
+                id: 'REG-' + Date.now(),
                 dataIso: dataIso,
-                dataHora: `${dataIso} ${horaStr}`,
+                hora: horaStr,
                 valvula: currentValve,
                 piquetas: np,
                 piq_litros: pL,
@@ -528,86 +542,23 @@
                 b2_litros: b2L,
                 b2_ec: parseFloat(document.getElementById('input-b2_ec').value) || 0,
                 b2_ph: parseFloat(document.getElementById('input-b2_ph').value) || 0,
-                dr2: dr2,
-                sync: false // Marca como não enviado por defeito
+                dr2: dr2
             };
 
+            // Guarda localmente para visualização instantânea na app
             recordsData.push(record);
             localStorage.setItem('agro_records', JSON.stringify(recordsData));
+
+            // Envia instantaneamente para o Google Sheets em segundo plano
+            enviarParaGoogleSheets(record);
 
             resetCurrentForm();
             renderTodayTable();
             renderAba1ValveButtons();
             
-            showToast('Registo guardado com sucesso!');
+            showToast('Registo guardado e enviado para o Sheets!');
             switchTab('aba1');
-
-            // Dispara imediatamente o envio para o Excel / Cloud
-            sincronizarComExcel();
         }
-
-        // --- SINCRONIZAÇÃO AUTOMÁTICA E OFFLINE COM EXCEL ---
-        async function sincronizarComExcel() {
-            if(!SHEETS_URL || SHEETS_URL.includes('https://script.google.com/macros/s/AKfycbxlnmPyItueeVKoiZFyj5sRsjcv0GTDsPJe5nSnb6Bz6NocTwhzZDdl4M8l-jUdvnOy/exec')) {
-                updateSyncBadge('noconfig');
-                return;
-            }
-            if(!navigator.onLine) {
-                const pendentesCount = recordsData.filter(r => !r.sync).length;
-                updateSyncBadge('offline', pendentesCount);
-                return;
-            }
-
-            const pendentes = recordsData.filter(r => !r.sync);
-            if(pendentes.length === 0) {
-                updateSyncBadge('ok');
-                return;
-            }
-
-            try {
-                updateSyncBadge('enviando', pendentes.length);
-                const res = await fetch(SHEETS_URL, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'text/plain;charset=utf-8'},
-                    body: JSON.stringify(pendentes)
-                });
-                const txt = await res.text();
-                if(res.ok && txt.trim() === 'ok') {
-                    // Marca os registos como enviados com sucesso
-                    pendentes.forEach(p => p.sync = true);
-                    localStorage.setItem('agro_records', JSON.stringify(recordsData));
-                    updateSyncBadge('ok');
-                } else {
-                    throw new Error(txt);
-                }
-            } catch(e) {
-                updateSyncBadge('erro', pendentes.length);
-            }
-        }
-
-        function updateSyncBadge(estado, qtd=0) {
-            const badge = document.getElementById('sync-status-badge');
-            if(!badge) return;
-            if(estado === 'ok') {
-                badge.className = 'text-xs bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-inner';
-                badge.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i> Excel Sincronizado ✔';
-            } else if(estado === 'enviando') {
-                badge.className = 'text-xs bg-amber-600 text-white font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-inner animate-pulse';
-                badge.innerHTML = `<i class="fa-solid fa-arrows-rotate animate-spin"></i> A enviar ${qtd} para o Excel...`;
-            } else if(estado === 'offline') {
-                badge.className = 'text-xs bg-slate-600 text-slate-200 font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-inner';
-                badge.innerHTML = `<i class="fa-solid fa-wifi-slash"></i> Offline (${qtd} em fila de espera)`;
-            } else if(estado === 'noconfig') {
-                badge.className = 'text-xs bg-slate-700 text-slate-200 font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-inner';
-                badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Excel por configurar';
-            } else {
-                badge.className = 'text-xs bg-red-600 text-white font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-inner';
-                badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Reenviar (${qtd} pendentes)`;
-            }
-        }
-
-        // Deteta automaticamente a recuperação de sinal de internet
-        window.addEventListener('online', sincronizarComExcel);
 
         function renderTodayTable() {
             const hoje = new Date().toISOString().split('T')[0];
@@ -623,11 +574,10 @@
 
             tbody.innerHTML = '';
             doDia.reverse().forEach((r) => {
-                const hora = r.dataHora.split(' ')[1] || '';
                 tbody.innerHTML += `
                     <tr>
                         <td class="font-bold">V${r.valvula}</td>
-                        <td>${hora}</td>
+                        <td>${r.hora}</td>
                         <td>${r.piq_litros.toFixed(1)}</td>
                         <td>${r.piq_ec.toFixed(1)}</td>
                         <td>${r.piq_ph.toFixed(1)}</td>
@@ -678,11 +628,10 @@
             tbody.innerHTML = '';
             filtrados.reverse().forEach(r => {
                 const dataPt = formatDatePt(r.dataIso);
-                const hora = r.dataHora.split(' ')[1] || '';
                 tbody.innerHTML += `
                     <tr>
                         <td class="font-semibold">${dataPt}</td>
-                        <td>${hora}</td>
+                        <td>${r.hora}</td>
                         <td class="font-bold">V${r.valvula}</td>
                         <td>${r.piq_litros.toFixed(1)}</td>
                         <td>${r.piq_ec.toFixed(1)}</td>
@@ -698,37 +647,6 @@
                     </tr>
                 `;
             });
-        }
-
-        function exportarExcel() {
-            if(recordsData.length === 0) {
-                alert('Não existem registos para exportar.');
-                return;
-            }
-            const wsData = recordsData.map(r => ({
-                "ID Registo": r.id,
-                "Data": r.dataIso,
-                "Hora": r.dataHora.split(' ')[1] || '',
-                "Válvula": r.valvula,
-                "Nº Piquetas": r.piquetas,
-                "Piq Litros": r.piq_litros,
-                "Piq EC": r.piq_ec,
-                "Piq pH": r.piq_ph,
-                "B1 Litros": r.b1_litros,
-                "B1 EC": r.b1_ec,
-                "B1 pH": r.b1_ph,
-                "DR1 (%)": r.dr1,
-                "B2 Litros": r.b2_litros,
-                "B2 EC": r.b2_ec,
-                "B2 pH": r.b2_ph,
-                "DR2 (%)": r.dr2
-            }));
-
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.json_to_sheet(wsData);
-            XLSX.utils.book_append_sheet(wb, ws, "Registos_Fertirrigacao");
-            XLSX.writeFile(wb, "Fertirrigacao_Acumulada.xlsx");
-            showToast('Ficheiro Excel descarregado!');
         }
 
         function formatDatePt(iso) {
