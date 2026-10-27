@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js para os Gráficos Interativos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Fonts (Inter) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -50,7 +52,7 @@
                 <i class="fa-solid fa-pen-to-square"></i> 📝 Inserir Registo
             </button>
             <button onclick="switchTab('aba3')" id="tab-btn-aba3" class="flex-1 py-3 px-4 text-center border-b-4 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-clock-rotate-left"></i> 📜 Histórico
+                <i class="fa-solid fa-clock-rotate-left"></i> 📜 Histórico & Gráficos
             </button>
             <button onclick="switchTab('aba4')" id="tab-btn-aba4" class="flex-1 py-3 px-4 text-center border-b-4 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-location-dot"></i> 📍 Nº Piquetas
@@ -222,8 +224,36 @@
             </div>
         </section>
 
-        <!-- ABA 3: HISTÓRICO -->
+        <!-- ABA 3: HISTÓRICO & GRÁFICO DOS ÚLTIMOS 10 DIAS -->
         <section id="tab-aba3" class="space-y-4 hidden">
+            
+            <!-- SECÇÃO DE GRÁFICOS COM BOTÕES DE SELEÇÃO -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <div class="flex flex-wrap justify-between items-center gap-3 border-b border-slate-100 pb-3">
+                    <h2 class="text-sm font-extrabold text-slate-700 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-emerald-600"></i> Gráfico dos Últimos 10 Dias
+                    </h2>
+                    
+                    <!-- BOTÕES DE SELEÇÃO DE MÉTRICA -->
+                    <div class="flex flex-wrap gap-1.5">
+                        <button onclick="setChartMetric('dr')" id="btn-metric-dr" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow">
+                            💧 Drenagem (%)
+                        </button>
+                        <button onclick="setChartMetric('ec')" id="btn-metric-ec" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">
+                            ⚡ EC (mS/cm)
+                        </button>
+                        <button onclick="setChartMetric('ph')" id="btn-metric-ph" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">
+                            🧪 pH
+                        </button>
+                    </div>
+                </div>
+
+                <div class="h-64 sm:h-72 w-full relative">
+                    <canvas id="historyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- FILTROS E TABELA DE HISTÓRICO -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <h2 class="text-sm font-extrabold text-slate-700 flex items-center gap-2">
                     <i class="fa-solid fa-filter text-emerald-600"></i> Filtrar Histórico de Leituras
@@ -232,25 +262,18 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1">Válvula</label>
-                        <select id="hist-valve" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm font-semibold">
-                            <option value="ALL">Todas as Válvulas</option>
+                        <select id="hist-valve" onchange="renderHistoryTable()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm font-semibold">
                             <script>for(let i=1; i<=10; i++) document.write(`<option value="${i}">Válvula ${i}</option>`);</script>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1">Data Início</label>
-                        <input type="date" id="hist-start" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-sm font-semibold">
+                        <input type="date" id="hist-start" onchange="renderHistoryTable()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-sm font-semibold">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1">Data Fim</label>
-                        <input type="date" id="hist-end" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-sm font-semibold">
+                        <input type="date" id="hist-end" onchange="renderHistoryTable()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-sm font-semibold">
                     </div>
-                </div>
-
-                <div class="flex justify-end">
-                    <button onclick="renderHistoryTable()" class="bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl shadow text-sm">
-                        <i class="fa-solid fa-magnifying-glass"></i> Aplicar Filtros
-                    </button>
                 </div>
             </div>
 
@@ -299,12 +322,11 @@
         <span id="toast-msg" class="text-sm font-bold">Sucesso!</span>
     </div>
 
-    <!-- IFRAME OCULTO PARA ENVIO DIRETO AO GOOGLE SHEETS SEM ERROS DE CORS -->
+    <!-- IFRAME OCULTO PARA ENVIO AO SHEETS -->
     <iframe id="hidden-iframe" name="hidden-iframe" style="display:none;"></iframe>
 
     <script>
-        // O SEU LINK DO GOOGLE APPS SCRIPT
-        const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxwt3gUBCVyaoVdeR3ntsdw0dP9s9FO2hCOWa4P1z9tT6dReJskNbPYgpjHTArT5l71/exec';
+        const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxlnmPyItueeVKoiZFyj5sRsjcv0GTDsPJe5nSnb6Bz6NocTwhzZDdl4M8l-jUdvnOy/exec';
 
         const fieldsOrder = ['piq_litros', 'piq_ec', 'piq_ph', 'b1_litros', 'b1_ec', 'b1_ph', 'b2_litros', 'b2_ec', 'b2_ph'];
         let activeField = 'piq_litros';
@@ -312,6 +334,9 @@
         let formValues = { piq_litros: '', piq_ec: '', piq_ph: '', b1_litros: '', b1_ec: '', b1_ph: '', b2_litros: '', b2_ec: '', b2_ph: '' };
         let piquetasConfig = {};
         let recordsData = [];
+        
+        let chartMetric = 'dr'; // 'dr', 'ec', 'ph'
+        let historyChart = null;
 
         window.onload = function() {
             loadPiquetasConfig();
@@ -326,6 +351,7 @@
             document.getElementById('today-date-label').innerText = formatDatePt(hoje);
 
             renderTodayTable();
+            initChart();
         };
 
         function switchTab(tab) {
@@ -339,7 +365,10 @@
             if(activeBtn) activeBtn.className = "flex-1 py-3 px-4 text-center border-b-4 border-emerald-400 text-white flex items-center justify-center gap-2 font-bold whitespace-nowrap";
 
             if(tab === 'aba1') renderAba1ValveButtons();
-            if(tab === 'aba3') renderHistoryTable();
+            if(tab === 'aba3') {
+                renderHistoryTable();
+                updateChart();
+            }
         }
 
         function renderAba1ValveButtons() {
@@ -493,7 +522,6 @@
             if(saved) { try { recordsData = JSON.parse(saved); } catch(e) { recordsData = []; } }
         }
 
-        // --- ENVIAR DIRETAMENTE PARA O GOOGLE SHEETS VIA FORMULÁRIO OCULTO ---
         function enviarParaGoogleSheets(reg) {
             const form = document.createElement('form');
             form.method = 'POST';
@@ -545,11 +573,8 @@
                 dr2: dr2
             };
 
-            // Guarda localmente para visualização instantânea na app
             recordsData.push(record);
             localStorage.setItem('agro_records', JSON.stringify(recordsData));
-
-            // Envia instantaneamente para o Google Sheets em segundo plano
             enviarParaGoogleSheets(record);
 
             resetCurrentForm();
@@ -603,6 +628,7 @@
             localStorage.setItem('agro_records', JSON.stringify(recordsData));
             renderTodayTable();
             renderAba1ValveButtons();
+            renderHistoryTable();
             showToast('Registo removido.');
         }
 
@@ -614,7 +640,7 @@
             const tbody = document.getElementById('history-table-body');
             
             let filtrados = recordsData.filter(r => {
-                if(valvFiltro !== 'ALL' && String(r.valvula) !== valvFiltro) return false;
+                if(valvFiltro && String(r.valvula) !== valvFiltro) return false;
                 if(startFiltro && r.dataIso < startFiltro) return false;
                 if(endFiltro && r.dataIso > endFiltro) return false;
                 return true;
@@ -622,6 +648,7 @@
 
             if(filtrados.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="14" class="text-center py-4 text-slate-400">Sem registos encontrados para o filtro aplicado.</td></tr>`;
+                updateChart();
                 return;
             }
 
@@ -647,13 +674,95 @@
                     </tr>
                 `;
             });
+
+            updateChart();
+        }
+
+        // --- GESTÃO E ATUALIZAÇÃO DO GRÁFICO (CHART.JS) ---
+        function setChartMetric(metric) {
+            chartMetric = metric;
+            ['dr', 'ec', 'ph'].forEach(m => {
+                const btn = document.getElementById(`btn-metric-${m}`);
+                if(m === metric) {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300";
+                }
+            });
+            updateChart();
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('historyChart').getContext('2d');
+            historyChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } } }
+                    }
+                }
+            });
+            updateChart();
+        }
+
+        function updateChart() {
+            if(!historyChart) return;
+
+            const valvFiltro = document.getElementById('hist-valve').value || '1';
+            
+            // Obter data de há 10 dias atrás
+            const hoje = new Date();
+            const limiteDias = new Date();
+            limiteDias.setDate(hoje.getDate() - 10);
+            const limiteIso = limiteDias.toISOString().split('T')[0];
+
+            // Filtrar registos dos últimos 10 dias para a válvula selecionada
+            const valveRecords = recordsData.filter(r => String(r.valvula) === String(valvFiltro) && r.dataIso >= limiteIso);
+            
+            // Ordenar por data/hora cronológica
+            valveRecords.sort((a, b) => new Date(a.dataHora || a.dataIso) - new Date(b.dataHora || b.dataIso));
+
+            // Extrair rótulos (Data + Hora)
+            const labels = valveRecords.map(r => `${formatDatePt(r.dataIso)} ${r.hora || ''}`);
+
+            let datasets = [];
+
+            if (chartMetric === 'dr') {
+                datasets = [
+                    { label: 'DR1 (%)', data: valveRecords.map(r => r.dr1), borderColor: '#2563eb', backgroundColor: '#3b82f6', tension: 0.2 },
+                    { label: 'DR2 (%)', data: valveRecords.map(r => r.dr2), borderColor: '#9333ea', backgroundColor: '#a855f7', tension: 0.2 }
+                ];
+            } else if (chartMetric === 'ec') {
+                datasets = [
+                    { label: 'Piq EC', data: valveRecords.map(r => r.piq_ec), borderColor: '#059669', backgroundColor: '#10b981', tension: 0.2 },
+                    { label: 'B1 EC', data: valveRecords.map(r => r.b1_ec), borderColor: '#2563eb', backgroundColor: '#3b82f6', tension: 0.2 },
+                    { label: 'B2 EC', data: valveRecords.map(r => r.b2_ec), borderColor: '#9333ea', backgroundColor: '#a855f7', tension: 0.2 }
+                ];
+            } else if (chartMetric === 'ph') {
+                datasets = [
+                    { label: 'Piq pH', data: valveRecords.map(r => r.piq_ph), borderColor: '#059669', backgroundColor: '#10b981', tension: 0.2 },
+                    { label: 'B1 pH', data: valveRecords.map(r => r.b1_ph), borderColor: '#2563eb', backgroundColor: '#3b82f6', tension: 0.2 },
+                    { label: 'B2 pH', data: valveRecords.map(r => r.b2_ph), borderColor: '#9333ea', backgroundColor: '#a855f7', tension: 0.2 }
+                ];
+            }
+
+            historyChart.data.labels = labels;
+            historyChart.data.datasets = datasets;
+            historyChart.update();
         }
 
         function formatDatePt(iso) {
             if(!iso) return '';
             const p = iso.split('-');
             if(p.length !== 3) return iso;
-            return `${p[2]}/${p[1]}/${p[0]}`;
+            return `${p[2]}/${p[1]}`;
         }
 
         function showToast(msg) {
