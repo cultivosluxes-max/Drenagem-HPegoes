@@ -308,7 +308,7 @@
 
     <script>
         // COLOQUE AQUI O SEU LINK DO GOOGLE APPS SCRIPT / EXEC
-        const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxvhoHagPXYT78m6MJz_JLhCXnrO_jZwnGOvnhvUnXeV2X98GlMwdCZzmF6e_iwCbHq/exec';
+        const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxlnmPyItueeVKoiZFyj5sRsjcv0GTDsPJe5nSnb6Bz6NocTwhzZDdl4M8l-jUdvnOy/exec';
 
         const fieldsOrder = ['piq_litros', 'piq_ec', 'piq_ph', 'b1_litros', 'b1_ec', 'b1_ph', 'b2_litros', 'b2_ec', 'b2_ph'];
         let activeField = 'piq_litros';
@@ -548,7 +548,7 @@
 
         // --- SINCRONIZAÇÃO AUTOMÁTICA E OFFLINE COM EXCEL ---
         async function sincronizarComExcel() {
-            if(!SHEETS_URL || SHEETS_URL.includes('https://script.google.com/macros/s/AKfycbxvhoHagPXYT78m6MJz_JLhCXnrO_jZwnGOvnhvUnXeV2X98GlMwdCZzmF6e_iwCbHq/exec')) {
+            if(!SHEETS_URL || SHEETS_URL.includes('https://script.google.com/macros/s/AKfycbxlnmPyItueeVKoiZFyj5sRsjcv0GTDsPJe5nSnb6Bz6NocTwhzZDdl4M8l-jUdvnOy/exec')) {
                 updateSyncBadge('noconfig');
                 return;
             }
