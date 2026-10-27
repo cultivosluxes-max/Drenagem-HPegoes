@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgroControl - Registo de Fertirrigação</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,77 +15,94 @@
     <style>
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         .table-agri { border-collapse: collapse !important; width: 100%; }
-        .table-agri th, .table-agri td { border: 1px solid #cbd5e1 !important; padding: 8px 6px; text-align: center; font-size: 0.8125rem; }
+        .table-agri th, .table-agri td { border: 1px solid #cbd5e1 !important; padding: 6px 4px; text-align: center; font-size: 0.75rem; }
         .table-agri th { background-color: #065f46; color: #ffffff; font-weight: 700; }
-        .keypad-btn { display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.5rem; background-color: #ffffff; color: #1e293b; border-radius: 0.75rem; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); border: 1px solid #cbd5e1; user-select: none; height: 3.5rem; transition: all 0.1s; }
+        
+        /* Otimização do teclado virtual para o ecrã */
+        .keypad-btn { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: 700; 
+            font-size: 1.25rem; 
+            background-color: #ffffff; 
+            color: #1e293b; 
+            border-radius: 0.5rem; 
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); 
+            border: 1px solid #cbd5e1; 
+            user-select: none; 
+            height: 100%;
+            min-height: 2.4rem;
+            transition: all 0.1s; 
+        }
         .keypad-btn:active { background-color: #d1fae5; transform: scale(0.96); }
-        .field-active { border-color: #059669 !important; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.25) !important; background-color: #ecfdf5 !important; }
+        .field-active { border-color: #059669 !important; box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.3) !important; background-color: #ecfdf5 !important; }
         .table-container::-webkit-scrollbar { height: 6px; }
         .table-container::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col pb-10">
+<body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden">
 
     <!-- TOP HEADER -->
-    <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
-            <div class="flex items-center space-x-3">
-                <i class="fa-solid fa-seedling text-2xl text-emerald-300"></i>
+    <header class="bg-emerald-800 text-white shadow-md flex-shrink-0 z-40">
+        <div class="max-w-7xl mx-auto px-3 py-2 flex flex-wrap justify-between items-center gap-1">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-seedling text-xl text-emerald-300"></i>
                 <div>
-                    <h1 class="text-xl font-black tracking-tight leading-none">AgroControl</h1>
-                    <span class="text-xs text-emerald-200">Fertirrigação & Drenagem</span>
+                    <h1 class="text-lg font-black tracking-tight leading-none">AgroControl</h1>
+                    <span class="text-[10px] text-emerald-200">Fertirrigação & Drenagem</span>
                 </div>
             </div>
 
             <!-- STATUS GOOGLE SHEETS -->
-            <div class="text-xs bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-inner">
+            <div class="text-[11px] bg-emerald-700 text-white font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-inner">
                 <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i> Google Sheets Ativo
             </div>
         </div>
 
         <!-- NAVIGATION TABS -->
-        <nav class="flex bg-emerald-900 text-sm font-semibold border-t border-emerald-700/50 overflow-x-auto">
-            <button onclick="switchTab('aba1')" id="tab-btn-aba1" class="flex-1 py-3 px-4 text-center border-b-4 border-emerald-400 text-white flex items-center justify-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-faucet-drip"></i> 🚰 Válvulas / Hoje
+        <nav class="flex bg-emerald-900 text-xs font-semibold border-t border-emerald-700/50 overflow-x-auto">
+            <button onclick="switchTab('aba1')" id="tab-btn-aba1" class="flex-1 py-2 px-3 text-center border-b-2 border-emerald-400 text-white flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-faucet-drip"></i> Válvulas / Hoje
             </button>
-            <button onclick="switchTab('aba2')" id="tab-btn-aba2" class="flex-1 py-3 px-4 text-center border-b-4 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-pen-to-square"></i> 📝 Inserir Registo
+            <button onclick="switchTab('aba2')" id="tab-btn-aba2" class="flex-1 py-2 px-3 text-center border-b-2 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-pen-to-square"></i> Inserir Registo
             </button>
-            <button onclick="switchTab('aba3')" id="tab-btn-aba3" class="flex-1 py-3 px-4 text-center border-b-4 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-clock-rotate-left"></i> 📜 Histórico & Gráficos
+            <button onclick="switchTab('aba3')" id="tab-btn-aba3" class="flex-1 py-2 px-3 text-center border-b-2 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-clock-rotate-left"></i> Histórico & Gráficos
             </button>
-            <button onclick="switchTab('aba4')" id="tab-btn-aba4" class="flex-1 py-3 px-4 text-center border-b-4 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-location-dot"></i> 📍 Nº Piquetas
+            <button onclick="switchTab('aba4')" id="tab-btn-aba4" class="flex-1 py-2 px-3 text-center border-b-2 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-location-dot"></i> Nº Piquetas
             </button>
         </nav>
     </header>
 
     <!-- MAIN CONTAINER -->
-    <main class="max-w-7xl mx-auto px-2 sm:px-4 mt-4 flex-grow w-full">
+    <main class="max-w-7xl mx-auto px-2 sm:px-4 py-2 flex-grow w-full overflow-y-auto min-h-0 flex flex-col">
 
         <!-- ABA 1: VÁLVULAS & DRENAGENS DE HOJE -->
-        <section id="tab-aba1" class="space-y-6">
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+        <section id="tab-aba1" class="space-y-4">
+            <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 space-y-2">
                 <div class="flex items-center justify-between">
                     <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-500">
                         <i class="fa-solid fa-faucet-drip text-emerald-600"></i> Válvulas (Clique para Inserir Registo na Aba 2):
                     </label>
-                    <span class="text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md font-bold border border-emerald-200">
+                    <span class="text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-bold border border-emerald-200">
                         Drenagens de Hoje (DR1 / DR2)
                     </span>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3" id="aba1-valve-buttons"></div>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2" id="aba1-valve-buttons"></div>
             </div>
 
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 space-y-2">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-sm font-extrabold text-slate-700 flex items-center gap-2">
+                    <h2 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
                         <i class="fa-solid fa-calendar-day text-emerald-600"></i> Registos Efetuados Hoje (<span id="today-date-label">--/--/----</span>)
                     </h2>
-                    <span id="today-count-badge" class="bg-emerald-100 text-emerald-800 font-bold text-xs px-2.5 py-1 rounded-full">0 registos</span>
+                    <span id="today-count-badge" class="bg-emerald-100 text-emerald-800 font-bold text-[11px] px-2 py-0.5 rounded-full">0 registos</span>
                 </div>
 
-                <div class="overflow-x-auto table-container rounded-xl border border-slate-300">
+                <div class="overflow-x-auto table-container rounded-lg border border-slate-300">
                     <table class="table-agri bg-white text-slate-700">
                         <thead>
                             <tr>
@@ -111,115 +128,116 @@
             </div>
         </section>
 
-        <!-- ABA 2: INSERÇÃO DE DADOS (3 LINHAS + TECLADO) -->
-        <section id="tab-aba2" class="space-y-4 hidden">
-            <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                    <div class="flex items-center gap-2">
-                        <span id="selected-valve-badge" class="bg-emerald-600 text-white font-black text-sm px-3 py-1 rounded-lg shadow-sm">
-                            Válvula 1
-                        </span>
-                        <span id="valve-pins-indicator" class="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
-                            (-- piquetas)
-                        </span>
+        <!-- ABA 2: INSERÇÃO DE DADOS (VIEWPORT AJUSTÁVEL - SEM SCROLL) -->
+        <section id="tab-aba2" class="h-full flex flex-col justify-between hidden space-y-2 max-w-xl mx-auto w-full">
+            
+            <!-- HEADER DA VÁLVULA SELECIONADA -->
+            <div class="flex justify-between items-center bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <span id="selected-valve-badge" class="bg-emerald-600 text-white font-black text-xs px-2.5 py-1 rounded-lg shadow-sm">
+                        Válvula 1
+                    </span>
+                    <span id="valve-pins-indicator" class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                        (-- piquetas)
+                    </span>
+                </div>
+                <button onclick="resetCurrentForm()" class="text-[11px] font-bold text-red-600 hover:text-red-800 bg-red-50 px-2.5 py-1 rounded-lg border border-red-200 transition">
+                    <i class="fa-solid fa-rotate-left"></i> Limpar Campos
+                </button>
+            </div>
+
+            <!-- BLOCO DOS INPUTS (3 LINHAS OTIMIZADAS) -->
+            <div class="space-y-1.5 flex-grow flex flex-col justify-center">
+                <!-- LINHA 1: PIQUETA -->
+                <div class="bg-emerald-50/80 px-2.5 py-1.5 rounded-xl border border-emerald-200 shadow-sm">
+                    <div class="font-bold text-emerald-900 text-[11px] flex items-center justify-between border-b border-emerald-200/60 pb-0.5 mb-1">
+                        <span><i class="fa-solid fa-droplet text-emerald-600"></i> LINHA 1: PIQUETA</span>
                     </div>
-                    <button onclick="resetCurrentForm()" class="text-xs font-bold text-red-600 hover:text-red-800 bg-red-50 px-3 py-1.5 rounded-lg border border-red-200 transition">
-                        <i class="fa-solid fa-rotate-left"></i> Limpar Campos
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">Litros</label>
+                            <input type="text" id="input-piq_litros" readonly onclick="setActiveField('piq_litros')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">EC</label>
+                            <input type="text" id="input-piq_ec" readonly onclick="setActiveField('piq_ec')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">pH</label>
+                            <input type="text" id="input-piq_ph" readonly onclick="setActiveField('piq_ph')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LINHA 2: BALDE 1 -->
+                <div class="bg-blue-50/80 px-2.5 py-1.5 rounded-xl border border-blue-200 shadow-sm">
+                    <div class="flex justify-between items-center border-b border-blue-200/60 pb-0.5 mb-1">
+                        <span class="font-bold text-blue-900 text-[11px] flex items-center gap-1"><i class="fa-solid fa-bucket text-blue-600"></i> LINHA 2: BALDE 1</span>
+                        <span id="live-dr1" class="text-[10px] font-black bg-blue-200 text-blue-900 px-1.5 py-0.2 rounded">DR1: 0%</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">Litros</label>
+                            <input type="text" id="input-b1_litros" readonly onclick="setActiveField('b1_litros')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">EC</label>
+                            <input type="text" id="input-b1_ec" readonly onclick="setActiveField('b1_ec')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">pH</label>
+                            <input type="text" id="input-b1_ph" readonly onclick="setActiveField('b1_ph')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LINHA 3: BALDE 2 -->
+                <div class="bg-purple-50/80 px-2.5 py-1.5 rounded-xl border border-purple-200 shadow-sm">
+                    <div class="flex justify-between items-center border-b border-purple-200/60 pb-0.5 mb-1">
+                        <span class="font-bold text-purple-900 text-[11px] flex items-center gap-1"><i class="fa-solid fa-bucket text-purple-600"></i> LINHA 3: BALDE 2</span>
+                        <span id="live-dr2" class="text-[10px] font-black bg-purple-200 text-purple-900 px-1.5 py-0.2 rounded">DR2: 0%</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">Litros</label>
+                            <input type="text" id="input-b2_litros" readonly onclick="setActiveField('b2_litros')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">EC</label>
+                            <input type="text" id="input-b2_ec" readonly onclick="setActiveField('b2_ec')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">pH</label>
+                            <input type="text" id="input-b2_ph" readonly onclick="setActiveField('b2_ph')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TECLADO NUMÉRICO VIRTUAL (AJUSTADO PARA FAZER FIT AO ECRÃ) -->
+            <div class="bg-slate-200/90 p-2 rounded-2xl border border-slate-300 shadow-sm flex-shrink-0 flex flex-col gap-1.5">
+                <div class="grid grid-cols-3 gap-1.5">
+                    <button onclick="keypadInput('1')" class="keypad-btn">1</button>
+                    <button onclick="keypadInput('2')" class="keypad-btn">2</button>
+                    <button onclick="keypadInput('3')" class="keypad-btn">3</button>
+                    <button onclick="keypadInput('4')" class="keypad-btn">4</button>
+                    <button onclick="keypadInput('5')" class="keypad-btn">5</button>
+                    <button onclick="keypadInput('6')" class="keypad-btn">6</button>
+                    <button onclick="keypadInput('7')" class="keypad-btn">7</button>
+                    <button onclick="keypadInput('8')" class="keypad-btn">8</button>
+                    <button onclick="keypadInput('9')" class="keypad-btn">9</button>
+                    <button onclick="keypadClearField()" class="keypad-btn bg-amber-500 text-white active:bg-amber-600 font-bold">C</button>
+                    <button onclick="keypadInput('0')" class="keypad-btn">0</button>
+                    <button onclick="keypadBackspace()" class="keypad-btn bg-slate-600 text-white active:bg-slate-700 font-bold">⌫</button>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-1.5">
+                    <button onclick="nextField()" class="bg-slate-800 text-white font-bold py-2 px-3 rounded-lg shadow active:scale-95 transition flex items-center justify-center gap-1.5 text-xs">
+                        Próximo Campo ➡️
                     </button>
-                </div>
-
-                <div class="space-y-3">
-                    <!-- LINHA 1: PIQUETA -->
-                    <div class="bg-emerald-50/70 p-3.5 rounded-xl border border-emerald-200 space-y-2">
-                        <div class="font-bold text-emerald-900 text-xs flex items-center justify-between border-b border-emerald-200 pb-1">
-                            <span><i class="fa-solid fa-droplet text-emerald-600"></i> LINHA 1: PIQUETA</span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-600 text-center">Litros</label>
-                                <input type="text" id="input-piq_litros" readonly onclick="setActiveField('piq_litros')" class="w-full text-center font-bold text-base py-2.5 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-600 text-center">EC</label>
-                                <input type="text" id="input-piq_ec" readonly onclick="setActiveField('piq_ec')" class="w-full text-center font-bold text-base py-2.5 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-600 text-center">pH</label>
-                                <input type="text" id="input-piq_ph" readonly onclick="setActiveField('piq_ph')" class="w-full text-center font-bold text-base py-2.5 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- LINHA 2: BALDE 1 -->
-                    <div class="bg-blue-50/70 p-3.5 rounded-xl border border-blue-200 space-y-2">
-                        <div class="flex justify-between items-center border-b border-blue-200 pb-1">
-                            <span class="font-bold text-blue-900 text-xs flex items-center gap-1"><i class="fa-solid fa-bucket text-blue-600"></i> LINHA 2: BALDE 1</span>
-                            <span id="live-dr1" class="text-[11px] font-black bg-blue-200 text-blue-900 px-2 py-0.5 rounded shadow-sm">DR1: 0%</span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-600 text-center">Litros</label>
-                                <input type="text" id="input-b1_litros" readonly onclick="setActiveField('b1_litros')" class="w-full text-center font-bold text-base py-2.5 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-600 text-center">EC</label>
-                                <input type="text" id="input-b1_ec" readonly onclick="setActiveField('b1_ec')" class="w-full text-center font-bold text-base py-2.5 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-600 text-center">pH</label>
-                                <input type="text" id="input-b1_ph" readonly onclick="setActiveField('b1_ph')" class="w-full text-center font-bold text-base py-2.5 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- LINHA 3: BALDE 2 -->
-                    <div class="bg-purple-50/70 p-3.5 rounded-xl border border-purple-200 space-y-2">
-                        <div class="flex justify-between items-center border-b border-purple-200 pb-1">
-                            <span class="font-bold text-purple-900 text-xs flex items-center gap-1"><i class="fa-solid fa-bucket text-purple-600"></i> LINHA 3: BALDE 2</span>
-                            <span id="live-dr2" class="text-[11px] font-black bg-purple-200 text-purple-900 px-2 py-0.5 rounded shadow-sm">DR2: 0%</span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-600 text-center">Litros</label>
-                                <input type="text" id="input-b2_litros" readonly onclick="setActiveField('b2_litros')" class="w-full text-center font-bold text-base py-2.5 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-600 text-center">EC</label>
-                                <input type="text" id="input-b2_ec" readonly onclick="setActiveField('b2_ec')" class="w-full text-center font-bold text-base py-2.5 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-600 text-center">pH</label>
-                                <input type="text" id="input-b2_ph" readonly onclick="setActiveField('b2_ph')" class="w-full text-center font-bold text-base py-2.5 rounded-lg border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TECLADO NUMÉRICO -->
-                <div class="bg-slate-200/80 p-3 rounded-2xl border border-slate-300 max-w-md mx-auto mt-3 shadow-sm">
-                    <div class="grid grid-cols-3 gap-2 mb-2">
-                        <button onclick="keypadInput('1')" class="keypad-btn">1</button>
-                        <button onclick="keypadInput('2')" class="keypad-btn">2</button>
-                        <button onclick="keypadInput('3')" class="keypad-btn">3</button>
-                        <button onclick="keypadInput('4')" class="keypad-btn">4</button>
-                        <button onclick="keypadInput('5')" class="keypad-btn">5</button>
-                        <button onclick="keypadInput('6')" class="keypad-btn">6</button>
-                        <button onclick="keypadInput('7')" class="keypad-btn">7</button>
-                        <button onclick="keypadInput('8')" class="keypad-btn">8</button>
-                        <button onclick="keypadInput('9')" class="keypad-btn">9</button>
-                        <button onclick="keypadClearField()" class="keypad-btn bg-amber-500 text-white active:bg-amber-600 text-xl font-bold">C</button>
-                        <button onclick="keypadInput('0')" class="keypad-btn">0</button>
-                        <button onclick="keypadBackspace()" class="keypad-btn bg-slate-600 text-white active:bg-slate-700 text-xl font-bold">⌫</button>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="nextField()" class="bg-slate-800 text-white font-bold py-3 px-4 rounded-xl shadow active:scale-95 transition flex items-center justify-center gap-2 text-sm">
-                            Próximo Campo ➡️
-                        </button>
-                        <button onclick="saveRecord()" class="bg-emerald-600 text-white font-black py-3 px-4 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2 text-sm hover:bg-emerald-700">
-                            <i class="fa-solid fa-floppy-disk"></i> GUARDAR
-                        </button>
-                    </div>
+                    <button onclick="saveRecord()" class="bg-emerald-600 text-white font-black py-2 px-3 rounded-lg shadow-md active:scale-95 transition flex items-center justify-center gap-1.5 text-xs hover:bg-emerald-700">
+                        <i class="fa-solid fa-floppy-disk"></i> GUARDAR
+                    </button>
                 </div>
             </div>
         </section>
@@ -228,57 +246,57 @@
         <section id="tab-aba3" class="space-y-4 hidden">
             
             <!-- SECÇÃO DE GRÁFICOS COM BOTÕES DE SELEÇÃO -->
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                <div class="flex flex-wrap justify-between items-center gap-3 border-b border-slate-100 pb-3">
-                    <h2 class="text-sm font-extrabold text-slate-700 flex items-center gap-2">
+            <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 space-y-3">
+                <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-100 pb-2">
+                    <h2 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
                         <i class="fa-solid fa-chart-line text-emerald-600"></i> Gráfico dos Últimos 10 Dias
                     </h2>
                     
                     <!-- BOTÕES DE SELEÇÃO DE MÉTRICA -->
-                    <div class="flex flex-wrap gap-1.5">
-                        <button onclick="setChartMetric('dr')" id="btn-metric-dr" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow">
+                    <div class="flex flex-wrap gap-1">
+                        <button onclick="setChartMetric('dr')" id="btn-metric-dr" class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-600 text-white shadow">
                             💧 Drenagem (%)
                         </button>
-                        <button onclick="setChartMetric('ec')" id="btn-metric-ec" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">
+                        <button onclick="setChartMetric('ec')" id="btn-metric-ec" class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">
                             ⚡ EC (mS/cm)
                         </button>
-                        <button onclick="setChartMetric('ph')" id="btn-metric-ph" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">
+                        <button onclick="setChartMetric('ph')" id="btn-metric-ph" class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">
                             🧪 pH
                         </button>
                     </div>
                 </div>
 
-                <div class="h-64 sm:h-72 w-full relative">
+                <div class="h-56 sm:h-64 w-full relative">
                     <canvas id="historyChart"></canvas>
                 </div>
             </div>
 
             <!-- FILTROS E TABELA DE HISTÓRICO -->
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                <h2 class="text-sm font-extrabold text-slate-700 flex items-center gap-2">
+            <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 space-y-3">
+                <h2 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
                     <i class="fa-solid fa-filter text-emerald-600"></i> Filtrar Histórico de Leituras
                 </h2>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">Válvula</label>
-                        <select id="hist-valve" onchange="renderHistoryTable()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm font-semibold">
+                        <label class="block text-[11px] font-bold text-slate-500 mb-0.5">Válvula</label>
+                        <select id="hist-valve" onchange="renderHistoryTable()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-1.5 text-xs font-semibold">
                             <script>for(let i=1; i<=10; i++) document.write(`<option value="${i}">Válvula ${i}</option>`);</script>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">Data Início</label>
-                        <input type="date" id="hist-start" onchange="renderHistoryTable()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-sm font-semibold">
+                        <label class="block text-[11px] font-bold text-slate-500 mb-0.5">Data Início</label>
+                        <input type="date" id="hist-start" onchange="renderHistoryTable()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-1.5 text-xs font-semibold">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">Data Fim</label>
-                        <input type="date" id="hist-end" onchange="renderHistoryTable()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-sm font-semibold">
+                        <label class="block text-[11px] font-bold text-slate-500 mb-0.5">Data Fim</label>
+                        <input type="date" id="hist-end" onchange="renderHistoryTable()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-1.5 text-xs font-semibold">
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                <div class="overflow-x-auto table-container rounded-xl border border-slate-300">
+            <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+                <div class="overflow-x-auto table-container rounded-lg border border-slate-300">
                     <table class="table-agri bg-white text-slate-700">
                         <thead>
                             <tr>
@@ -295,19 +313,19 @@
 
         <!-- ABA 4: NÚMERO DE PIQUETAS -->
         <section id="tab-aba4" class="space-y-4 hidden">
-            <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
                 <div class="flex items-center gap-3">
-                    <div class="bg-emerald-100 text-emerald-800 p-3 rounded-2xl"><i class="fa-solid fa-location-dot text-xl"></i></div>
+                    <div class="bg-emerald-100 text-emerald-800 p-2.5 rounded-xl"><i class="fa-solid fa-location-dot text-lg"></i></div>
                     <div>
-                        <h2 class="text-base font-black text-slate-800">Configuração de Piquetas por Válvula</h2>
-                        <p class="text-xs text-slate-500">Valor usado no cálculo automático de DR1 e DR2.</p>
+                        <h2 class="text-sm font-black text-slate-800">Configuração de Piquetas por Válvula</h2>
+                        <p class="text-[11px] text-slate-500">Valor usado no cálculo automático de DR1 e DR2.</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2" id="piquetas-config-container"></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2" id="piquetas-config-container"></div>
 
                 <div class="flex justify-end pt-2">
-                    <button onclick="savePiquetasConfig()" class="bg-emerald-600 text-white font-black px-6 py-3 rounded-xl shadow-lg text-sm flex items-center gap-2">
+                    <button onclick="savePiquetasConfig()" class="bg-emerald-600 text-white font-black px-5 py-2.5 rounded-xl shadow-md text-xs flex items-center gap-2">
                         <i class="fa-solid fa-floppy-disk"></i> Guardar Configuração
                     </button>
                 </div>
@@ -317,16 +335,16 @@
     </main>
 
     <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3 transform translate-y-28 opacity-0 transition-all duration-300 z-50">
-        <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
-        <span id="toast-msg" class="text-sm font-bold">Sucesso!</span>
+    <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-2.5 transform translate-y-28 opacity-0 transition-all duration-300 z-50">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toast-msg" class="text-xs font-bold">Sucesso!</span>
     </div>
 
     <!-- IFRAME OCULTO PARA ENVIO AO SHEETS -->
     <iframe id="hidden-iframe" name="hidden-iframe" style="display:none;"></iframe>
 
     <script>
-        const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxlnmPyItueeVKoiZFyj5sRsjcv0GTDsPJe5nSnb6Bz6NocTwhzZDdl4M8l-jUdvnOy/exec';
+        const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyXl1JBUH3LY2E4dWwmLMa0GZ-j2Ua0xbxXelrQIS-Kls8EUnn1EbC2yAlB3OxVIaUO/exec';
 
         const fieldsOrder = ['piq_litros', 'piq_ec', 'piq_ph', 'b1_litros', 'b1_ec', 'b1_ph', 'b2_litros', 'b2_ec', 'b2_ph'];
         let activeField = 'piq_litros';
@@ -358,11 +376,11 @@
             ['aba1', 'aba2', 'aba3', 'aba4'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
                 const btn = document.getElementById(`tab-btn-${t}`);
-                if(btn) btn.className = "flex-1 py-3 px-4 text-center border-b-4 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-2 whitespace-nowrap";
+                if(btn) btn.className = "flex-1 py-2 px-3 text-center border-b-2 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-1.5 whitespace-nowrap";
             });
             document.getElementById(`tab-${tab}`).classList.remove('hidden');
             const activeBtn = document.getElementById(`tab-btn-${tab}`);
-            if(activeBtn) activeBtn.className = "flex-1 py-3 px-4 text-center border-b-4 border-emerald-400 text-white flex items-center justify-center gap-2 font-bold whitespace-nowrap";
+            if(activeBtn) activeBtn.className = "flex-1 py-2 px-3 text-center border-b-2 border-emerald-400 text-white flex items-center justify-center gap-1.5 font-bold whitespace-nowrap";
 
             if(tab === 'aba1') renderAba1ValveButtons();
             if(tab === 'aba3') {
@@ -379,21 +397,21 @@
 
             for(let i=1; i<=10; i++) {
                 const regV = doDia.filter(r => Number(r.valvula) === i).pop();
-                let conteudoHtml = `<span class="text-xs text-slate-400 font-normal">Sem registo hoje</span>`;
+                let conteudoHtml = `<span class="text-[10px] text-slate-400 font-normal">Sem registo hoje</span>`;
                 let bgStyle = "bg-slate-50 border-slate-200 text-slate-700 hover:bg-emerald-50 hover:border-emerald-500";
 
                 if(regV) {
                     conteudoHtml = `
-                        <div class="text-[11px] font-black text-blue-800 bg-blue-50 px-1.5 py-0.5 rounded mt-1">DR1: ${regV.dr1}%</div>
-                        <div class="text-[11px] font-black text-purple-800 bg-purple-50 px-1.5 py-0.5 rounded mt-0.5">DR2: ${regV.dr2}%</div>
+                        <div class="text-[10px] font-black text-blue-800 bg-blue-50 px-1 py-0.2 rounded mt-0.5">DR1: ${regV.dr1}%</div>
+                        <div class="text-[10px] font-black text-purple-800 bg-purple-50 px-1 py-0.2 rounded mt-0.5">DR2: ${regV.dr2}%</div>
                     `;
                     bgStyle = "bg-emerald-50/50 border-emerald-300 text-emerald-900 shadow-sm";
                 }
 
                 container.innerHTML += `
-                    <button onclick="selectValveAndOpenAba2(${i})" class="p-3 rounded-xl font-black text-sm transition-all border flex flex-col items-center justify-between min-h-[90px] ${bgStyle} active:scale-95">
-                        <span class="text-base font-extrabold text-emerald-800 bg-white px-2 py-0.5 rounded-lg border border-slate-200 shadow-sm">Válvula ${i}</span>
-                        <div class="w-full">${conteudoHtml}</div>
+                    <button onclick="selectValveAndOpenAba2(${i})" class="p-2 rounded-xl font-black text-xs transition-all border flex flex-col items-center justify-between min-h-[76px] ${bgStyle} active:scale-95">
+                        <span class="text-xs font-extrabold text-emerald-800 bg-white px-1.5 py-0.5 rounded-lg border border-slate-200 shadow-sm">Válvula ${i}</span>
+                        <div class="w-full text-center">${conteudoHtml}</div>
                     </button>
                 `;
             }
@@ -419,11 +437,11 @@
             container.innerHTML = '';
             for(let i=1; i<=10; i++) {
                 container.innerHTML += `
-                    <div class="flex items-center justify-between bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                        <span class="font-bold text-sm text-slate-700">Válvula ${i}</span>
+                    <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                        <span class="font-bold text-xs text-slate-700">Válvula ${i}</span>
                         <div class="flex items-center gap-2">
-                            <label class="text-xs text-slate-500 font-semibold">Piquetas:</label>
-                            <input type="number" id="cfg-v${i}" value="${piquetasConfig[`v${i}`]}" min="1" class="w-20 text-center font-bold text-base bg-white border border-slate-300 rounded-lg py-1">
+                            <label class="text-[11px] text-slate-500 font-semibold">Piquetas:</label>
+                            <input type="number" id="cfg-v${i}" value="${piquetasConfig[`v${i}`]}" min="1" class="w-16 text-center font-bold text-sm bg-white border border-slate-300 rounded-lg py-0.5">
                         </div>
                     </div>
                 `;
@@ -615,7 +633,7 @@
                         <td>${r.b2_ph.toFixed(1)}</td>
                         <td class="bg-purple-50 font-black text-purple-900">${r.dr2}%</td>
                         <td>
-                            <button onclick="deleteRecord('${r.id}')" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash"></i></button>
+                            <button onclick="deleteRecord('${r.id}')" class="text-red-500 hover:text-red-700 p-0.5"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
                 `;
@@ -684,9 +702,9 @@
             ['dr', 'ec', 'ph'].forEach(m => {
                 const btn = document.getElementById(`btn-metric-${m}`);
                 if(m === metric) {
-                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow";
+                    btn.className = "px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-600 text-white shadow";
                 } else {
-                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300";
+                    btn.className = "px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-200 text-slate-700 hover:bg-slate-300";
                 }
             });
             updateChart();
@@ -705,7 +723,7 @@
                         x: { grid: { display: false } }
                     },
                     plugins: {
-                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } } }
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 'bold' } } }
                     }
                 }
             });
