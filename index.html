@@ -54,9 +54,11 @@
                 </div>
             </div>
 
-            <!-- STATUS GOOGLE SHEETS -->
-            <div class="text-[11px] bg-emerald-700 text-white font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-inner">
-                <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i> Google Sheets Ativo
+            <!-- INDICADOR E BOTÃO DE SINCRONIZAÇÃO EM TEMPO REAL COM GOOGLE SHEETS -->
+            <div id="sync-status-container" onclick="fetchFromCloud()" class="cursor-pointer text-[11px] bg-emerald-700 hover:bg-emerald-600 active:scale-95 transition text-white font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-inner select-none" title="Clique para sincronizar manualmente com o Google Sheets">
+                <i id="sync-icon" class="fa-solid fa-cloud-arrow-up text-emerald-300"></i>
+                <span id="sync-text">Sincronizado</span>
+                <i class="fa-solid fa-rotate text-[10px] ml-1 opacity-75"></i>
             </div>
         </div>
 
@@ -214,7 +216,7 @@
                 </div>
             </div>
 
-            <!-- TECLADO NUMÉRICO VIRTUAL (AJUSTADO PARA FAZER FIT AO ECRÃ) -->
+            <!-- TECLADO NUMÉRICO VIRTUAL -->
             <div class="bg-slate-200/90 p-2 rounded-2xl border border-slate-300 shadow-sm flex-shrink-0 flex flex-col gap-1.5">
                 <div class="grid grid-cols-3 gap-1.5">
                     <button onclick="keypadInput('1')" class="keypad-btn">1</button>
@@ -244,39 +246,26 @@
 
         <!-- ABA 3: HISTÓRICO & GRÁFICO DOS ÚLTIMOS 10 DIAS -->
         <section id="tab-aba3" class="space-y-4 hidden">
-            
-            <!-- SECÇÃO DE GRÁFICOS COM BOTÕES DE SELEÇÃO -->
             <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 space-y-3">
                 <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-100 pb-2">
                     <h2 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
                         <i class="fa-solid fa-chart-line text-emerald-600"></i> Gráfico dos Últimos 10 Dias
                     </h2>
-                    
-                    <!-- BOTÕES DE SELEÇÃO DE MÉTRICA -->
                     <div class="flex flex-wrap gap-1">
-                        <button onclick="setChartMetric('dr')" id="btn-metric-dr" class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-600 text-white shadow">
-                            💧 Drenagem (%)
-                        </button>
-                        <button onclick="setChartMetric('ec')" id="btn-metric-ec" class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">
-                            ⚡ EC (mS/cm)
-                        </button>
-                        <button onclick="setChartMetric('ph')" id="btn-metric-ph" class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">
-                            🧪 pH
-                        </button>
+                        <button onclick="setChartMetric('dr')" id="btn-metric-dr" class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-600 text-white shadow">💧 Drenagem (%)</button>
+                        <button onclick="setChartMetric('ec')" id="btn-metric-ec" class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">⚡ EC (mS/cm)</button>
+                        <button onclick="setChartMetric('ph')" id="btn-metric-ph" class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">🧪 pH</button>
                     </div>
                 </div>
-
                 <div class="h-56 sm:h-64 w-full relative">
                     <canvas id="historyChart"></canvas>
                 </div>
             </div>
 
-            <!-- FILTROS E TABELA DE HISTÓRICO -->
             <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 space-y-3">
                 <h2 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
                     <i class="fa-solid fa-filter text-emerald-600"></i> Filtrar Histórico de Leituras
                 </h2>
-                
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <div>
                         <label class="block text-[11px] font-bold text-slate-500 mb-0.5">Válvula</label>
@@ -321,9 +310,7 @@
                         <p class="text-[11px] text-slate-500">Valor usado no cálculo automático de DR1 e DR2.</p>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2" id="piquetas-config-container"></div>
-
                 <div class="flex justify-end pt-2">
                     <button onclick="savePiquetasConfig()" class="bg-emerald-600 text-white font-black px-5 py-2.5 rounded-xl shadow-md text-xs flex items-center gap-2">
                         <i class="fa-solid fa-floppy-disk"></i> Guardar Configuração
@@ -331,7 +318,6 @@
                 </div>
             </div>
         </section>
-
     </main>
 
     <!-- TOAST NOTIFICATION -->
@@ -344,7 +330,7 @@
     <iframe id="hidden-iframe" name="hidden-iframe" style="display:none;"></iframe>
 
     <script>
-        const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyXl1JBUH3LY2E4dWwmLMa0GZ-j2Ua0xbxXelrQIS-Kls8EUnn1EbC2yAlB3OxVIaUO/exec';
+        const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyGcJ89ty5KwkoLnfvHV0BcJVU5TX1NRX7xB1aaSMJmLavgXZuIByWXD2T9IeY9WXZ2/exec';
 
         const fieldsOrder = ['piq_litros', 'piq_ec', 'piq_ph', 'b1_litros', 'b1_ec', 'b1_ph', 'b2_litros', 'b2_ec', 'b2_ph'];
         let activeField = 'piq_litros';
@@ -353,12 +339,12 @@
         let piquetasConfig = {};
         let recordsData = [];
         
-        let chartMetric = 'dr'; // 'dr', 'ec', 'ph'
+        let chartMetric = 'dr';
         let historyChart = null;
 
         window.onload = function() {
             loadPiquetasConfig();
-            loadRecords();
+            loadRecords(); // Carrega da cache local (localStorage) primeiro
             renderAba1ValveButtons();
             renderPiquetasConfigUI();
             setActiveField('piq_litros');
@@ -370,7 +356,92 @@
 
             renderTodayTable();
             initChart();
+
+            // Sincroniza em tempo real com o Google Sheets
+            fetchFromCloud();
         };
+
+        // --- SINCRONIZAÇÃO EM TEMPO REAL VIA GOOGLE SHEETS ---
+        function updateSyncStatus(status, message) {
+            const container = document.getElementById('sync-status-container');
+            const icon = document.getElementById('sync-icon');
+            const text = document.getElementById('sync-text');
+
+            if (status === 'syncing') {
+                container.className = "cursor-wait text-[11px] bg-amber-600 text-white font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-inner select-none";
+                icon.className = "fa-solid fa-rotate animate-spin text-amber-200";
+                text.innerText = message || "A sincronizar...";
+            } else if (status === 'success') {
+                container.className = "cursor-pointer text-[11px] bg-emerald-700 hover:bg-emerald-600 active:scale-95 transition text-white font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-inner select-none";
+                icon.className = "fa-solid fa-cloud-arrow-up text-emerald-300";
+                text.innerText = message || "Sincronizado";
+            } else if (status === 'error') {
+                container.className = "cursor-pointer text-[11px] bg-rose-700 hover:bg-rose-600 active:scale-95 transition text-white font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-inner select-none";
+                icon.className = "fa-solid fa-triangle-exclamation text-rose-300";
+                text.innerText = message || "Modo Offline";
+            }
+        }
+
+        async function fetchFromCloud() {
+            updateSyncStatus('syncing');
+            try {
+                const response = await fetch(SHEETS_URL);
+                if (!response.ok) throw new Error('Falha de resposta');
+                const cloudData = await response.json();
+
+                if (Array.isArray(cloudData)) {
+                    recordsData = cloudData.map(r => ({
+                        id: r.id || 'REG-' + Date.now() + Math.random(),
+                        dataIso: formatDateIsoString(r.dataIso),
+                        hora: cleanTimeFormat(r.hora),
+                        valvula: Number(r.valvula) || 1,
+                        piquetas: Number(r.piquetas) || 10,
+                        piq_litros: parseFloat(r.piq_litros) || 0,
+                        piq_ec: parseFloat(r.piq_ec) || 0,
+                        piq_ph: parseFloat(r.piq_ph) || 0,
+                        b1_litros: parseFloat(r.b1_litros) || 0,
+                        b1_ec: parseFloat(r.b1_ec) || 0,
+                        b1_ph: parseFloat(r.b1_ph) || 0,
+                        dr1: parseFloat(r.dr1) || 0,
+                        b2_litros: parseFloat(r.b2_litros) || 0,
+                        b2_ec: parseFloat(r.b2_ec) || 0,
+                        b2_ph: parseFloat(r.b2_ph) || 0,
+                        dr2: parseFloat(r.dr2) || 0
+                    }));
+
+                    localStorage.setItem('agro_records', JSON.stringify(recordsData));
+                    
+                    renderTodayTable();
+                    renderAba1ValveButtons();
+                    renderHistoryTable();
+                    updateChart();
+
+                    updateSyncStatus('success', 'Sincronizado');
+                } else {
+                    updateSyncStatus('success');
+                }
+            } catch (err) {
+                console.warn('Modo Offline: A usar cache local.', err);
+                updateSyncStatus('error', 'Modo Offline');
+            }
+        }
+
+        function cleanTimeFormat(rawTime) {
+            if (!rawTime) return '';
+            let timeStr = String(rawTime);
+            const match = timeStr.match(/(\d{2}):(\d{2})/);
+            if (match) {
+                return `${match[1]}:${match[2]}`;
+            }
+            return timeStr.substring(0, 5);
+        }
+
+        function formatDateIsoString(rawDate) {
+            if (!rawDate) return new Date().toISOString().split('T')[0];
+            let dStr = String(rawDate);
+            if (dStr.includes('T')) return dStr.split('T')[0];
+            return dStr.substring(0, 10);
+        }
 
         function switchTab(tab) {
             ['aba1', 'aba2', 'aba3', 'aba4'].forEach(t => {
@@ -541,6 +612,7 @@
         }
 
         function enviarParaGoogleSheets(reg) {
+            updateSyncStatus('syncing', 'A enviar...');
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = SHEETS_URL;
@@ -557,6 +629,10 @@
             document.body.appendChild(form);
             form.submit();
             document.body.removeChild(form);
+
+            setTimeout(() => {
+                fetchFromCloud();
+            }, 1800);
         }
 
         function saveRecord() {
@@ -599,7 +675,7 @@
             renderTodayTable();
             renderAba1ValveButtons();
             
-            showToast('Registo guardado e enviado para o Sheets!');
+            showToast('Registo guardado e enviado para a nuvem!');
             switchTab('aba1');
         }
 
@@ -616,7 +692,7 @@
             }
 
             tbody.innerHTML = '';
-            doDia.reverse().forEach((r) => {
+            [...doDia].reverse().forEach((r) => {
                 tbody.innerHTML += `
                     <tr>
                         <td class="font-bold">V${r.valvula}</td>
@@ -647,7 +723,7 @@
             renderTodayTable();
             renderAba1ValveButtons();
             renderHistoryTable();
-            showToast('Registo removido.');
+            showToast('Registo removido localmente.');
         }
 
         function renderHistoryTable() {
@@ -671,7 +747,7 @@
             }
 
             tbody.innerHTML = '';
-            filtrados.reverse().forEach(r => {
+            [...filtrados].reverse().forEach(r => {
                 const dataPt = formatDatePt(r.dataIso);
                 tbody.innerHTML += `
                     <tr>
@@ -696,7 +772,6 @@
             updateChart();
         }
 
-        // --- GESTÃO E ATUALIZAÇÃO DO GRÁFICO (CHART.JS) ---
         function setChartMetric(metric) {
             chartMetric = metric;
             ['dr', 'ec', 'ph'].forEach(m => {
@@ -734,22 +809,15 @@
             if(!historyChart) return;
 
             const valvFiltro = document.getElementById('hist-valve').value || '1';
-            
-            // Obter data de há 10 dias atrás
             const hoje = new Date();
             const limiteDias = new Date();
             limiteDias.setDate(hoje.getDate() - 10);
             const limiteIso = limiteDias.toISOString().split('T')[0];
 
-            // Filtrar registos dos últimos 10 dias para a válvula selecionada
             const valveRecords = recordsData.filter(r => String(r.valvula) === String(valvFiltro) && r.dataIso >= limiteIso);
-            
-            // Ordenar por data/hora cronológica
-            valveRecords.sort((a, b) => new Date(a.dataHora || a.dataIso) - new Date(b.dataHora || b.dataIso));
+            valveRecords.sort((a, b) => new Date(a.dataIso + 'T' + (a.hora || '00:00:00')) - new Date(b.dataIso + 'T' + (b.hora || '00:00:00')));
 
-            // Extrair rótulos (Data + Hora)
             const labels = valveRecords.map(r => `${formatDatePt(r.dataIso)} ${r.hora || ''}`);
-
             let datasets = [];
 
             if (chartMetric === 'dr') {
