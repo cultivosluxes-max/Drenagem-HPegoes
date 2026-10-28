@@ -18,21 +18,21 @@
         .table-agri th, .table-agri td { border: 1px solid #cbd5e1 !important; padding: 6px 4px; text-align: center; font-size: 0.75rem; }
         .table-agri th { background-color: #065f46; color: #ffffff; font-weight: 700; }
         
-        /* Otimização do teclado virtual para o ecrã */
+        /* Otimização do teclado virtual para ajustar perfeitamente ao ecrã */
         .keypad-btn { 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             font-weight: 700; 
-            font-size: 1.25rem; 
+            font-size: 1.15rem; 
             background-color: #ffffff; 
             color: #1e293b; 
-            border-radius: 0.5rem; 
+            border-radius: 0.4rem; 
             box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); 
             border: 1px solid #cbd5e1; 
             user-select: none; 
             height: 100%;
-            min-height: 2.4rem;
+            min-height: 2.1rem;
             transition: all 0.1s; 
         }
         .keypad-btn:active { background-color: #d1fae5; transform: scale(0.96); }
@@ -45,42 +45,42 @@
 
     <!-- TOP HEADER -->
     <header class="bg-emerald-800 text-white shadow-md flex-shrink-0 z-40">
-        <div class="max-w-7xl mx-auto px-3 py-2 flex flex-wrap justify-between items-center gap-1">
+        <div class="max-w-7xl mx-auto px-3 py-1.5 flex flex-wrap justify-between items-center gap-1">
             <div class="flex items-center space-x-2">
-                <i class="fa-solid fa-seedling text-xl text-emerald-300"></i>
+                <i class="fa-solid fa-seedling text-lg text-emerald-300"></i>
                 <div>
-                    <h1 class="text-lg font-black tracking-tight leading-none">AgroControl</h1>
-                    <span class="text-[10px] text-emerald-200">Fertirrigação & Drenagem</span>
+                    <h1 class="text-base font-black tracking-tight leading-none">AgroControl</h1>
+                    <span class="text-[9px] text-emerald-200">Fertirrigação & Drenagem</span>
                 </div>
             </div>
 
             <!-- INDICADOR E BOTÃO DE SINCRONIZAÇÃO EM TEMPO REAL COM GOOGLE SHEETS -->
-            <div id="sync-status-container" onclick="fetchFromCloud()" class="cursor-pointer text-[11px] bg-emerald-700 hover:bg-emerald-600 active:scale-95 transition text-white font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-inner select-none" title="Clique para sincronizar manualmente com o Google Sheets">
+            <div id="sync-status-container" onclick="fetchFromCloud()" class="cursor-pointer text-[10px] bg-emerald-700 hover:bg-emerald-600 active:scale-95 transition text-white font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-inner select-none" title="Clique para sincronizar manualmente com o Google Sheets">
                 <i id="sync-icon" class="fa-solid fa-cloud-arrow-up text-emerald-300"></i>
                 <span id="sync-text">Sincronizado</span>
-                <i class="fa-solid fa-rotate text-[10px] ml-1 opacity-75"></i>
+                <i class="fa-solid fa-rotate text-[9px] ml-1 opacity-75"></i>
             </div>
         </div>
 
         <!-- NAVIGATION TABS -->
         <nav class="flex bg-emerald-900 text-xs font-semibold border-t border-emerald-700/50 overflow-x-auto">
-            <button onclick="switchTab('aba1')" id="tab-btn-aba1" class="flex-1 py-2 px-3 text-center border-b-2 border-emerald-400 text-white flex items-center justify-center gap-1.5 whitespace-nowrap">
+            <button onclick="switchTab('aba1')" id="tab-btn-aba1" class="flex-1 py-1.5 px-3 text-center border-b-2 border-emerald-400 text-white flex items-center justify-center gap-1.5 whitespace-nowrap">
                 <i class="fa-solid fa-faucet-drip"></i> Válvulas / Hoje
             </button>
-            <button onclick="switchTab('aba2')" id="tab-btn-aba2" class="flex-1 py-2 px-3 text-center border-b-2 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-1.5 whitespace-nowrap">
+            <button onclick="switchTab('aba2')" id="tab-btn-aba2" class="flex-1 py-1.5 px-3 text-center border-b-2 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-1.5 whitespace-nowrap">
                 <i class="fa-solid fa-pen-to-square"></i> Inserir Registo
             </button>
-            <button onclick="switchTab('aba3')" id="tab-btn-aba3" class="flex-1 py-2 px-3 text-center border-b-2 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-1.5 whitespace-nowrap">
+            <button onclick="switchTab('aba3')" id="tab-btn-aba3" class="flex-1 py-1.5 px-3 text-center border-b-2 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-1.5 whitespace-nowrap">
                 <i class="fa-solid fa-clock-rotate-left"></i> Histórico & Gráficos
             </button>
-            <button onclick="switchTab('aba4')" id="tab-btn-aba4" class="flex-1 py-2 px-3 text-center border-b-2 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-1.5 whitespace-nowrap">
+            <button onclick="switchTab('aba4')" id="tab-btn-aba4" class="flex-1 py-1.5 px-3 text-center border-b-2 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-1.5 whitespace-nowrap">
                 <i class="fa-solid fa-location-dot"></i> Nº Piquetas
             </button>
         </nav>
     </header>
 
     <!-- MAIN CONTAINER -->
-    <main class="max-w-7xl mx-auto px-2 sm:px-4 py-2 flex-grow w-full overflow-y-auto min-h-0 flex flex-col">
+    <main class="max-w-7xl mx-auto px-2 sm:px-4 py-1.5 flex-grow w-full overflow-y-auto min-h-0 flex flex-col">
 
         <!-- ABA 1: VÁLVULAS & DRENAGENS DE HOJE -->
         <section id="tab-aba1" class="space-y-4">
@@ -130,95 +130,97 @@
             </div>
         </section>
 
-        <!-- ABA 2: INSERÇÃO DE DADOS (VIEWPORT AJUSTÁVEL - SEM SCROLL) -->
-        <section id="tab-aba2" class="h-full flex flex-col justify-between hidden space-y-2 max-w-xl mx-auto w-full">
+        <!-- ABA 2: INSERÇÃO DE DADOS (VIEWPORT AJUSTÁVEL COMPACTADO NO TOPO) -->
+        <section id="tab-aba2" class="h-full flex flex-col justify-start hidden space-y-1.5 max-w-xl mx-auto w-full pt-0.5">
             
-            <!-- HEADER DA VÁLVULA SELECIONADA -->
-            <div class="flex justify-between items-center bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm flex-shrink-0">
-                <div class="flex items-center gap-2">
-                    <span id="selected-valve-badge" class="bg-emerald-600 text-white font-black text-xs px-2.5 py-1 rounded-lg shadow-sm">
+            <!-- BANNER/HEADER COMPACTO DA VÁLVULA SELECIONADA -->
+            <div class="flex justify-between items-center bg-white px-3 py-1.5 rounded-xl border border-emerald-300 shadow-sm flex-shrink-0">
+                <div class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-pen-to-square text-emerald-600 text-xs"></i>
+                    <span class="text-xs font-semibold text-slate-600">Está a inserir dados na:</span>
+                    <span id="selected-valve-badge" class="bg-emerald-600 text-white font-black text-xs px-2 py-0.5 rounded-md shadow-sm">
                         Válvula 1
                     </span>
-                    <span id="valve-pins-indicator" class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                    <span id="valve-pins-indicator" class="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
                         (-- piquetas)
                     </span>
                 </div>
-                <button onclick="resetCurrentForm()" class="text-[11px] font-bold text-red-600 hover:text-red-800 bg-red-50 px-2.5 py-1 rounded-lg border border-red-200 transition">
-                    <i class="fa-solid fa-rotate-left"></i> Limpar Campos
+                <button onclick="resetCurrentForm()" class="text-[10px] font-bold text-red-600 hover:text-red-800 bg-red-50 px-2 py-1 rounded-md border border-red-200 transition">
+                    <i class="fa-solid fa-rotate-left"></i> Limpar
                 </button>
             </div>
 
-            <!-- BLOCO DOS INPUTS (3 LINHAS OTIMIZADAS) -->
-            <div class="space-y-1.5 flex-grow flex flex-col justify-center">
+            <!-- BLOCO DOS INPUTS (3 LINHAS COMPACTADAS E SUBIDAS) -->
+            <div class="space-y-1 flex-shrink-0">
                 <!-- LINHA 1: PIQUETA -->
-                <div class="bg-emerald-50/80 px-2.5 py-1.5 rounded-xl border border-emerald-200 shadow-sm">
-                    <div class="font-bold text-emerald-900 text-[11px] flex items-center justify-between border-b border-emerald-200/60 pb-0.5 mb-1">
+                <div class="bg-emerald-50/90 px-2 py-1 rounded-lg border border-emerald-200 shadow-sm">
+                    <div class="font-bold text-emerald-900 text-[10px] flex items-center justify-between border-b border-emerald-200/60 pb-0.5 mb-0.5">
                         <span><i class="fa-solid fa-droplet text-emerald-600"></i> LINHA 1: PIQUETA</span>
                     </div>
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="grid grid-cols-3 gap-1.5">
                         <div>
-                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">Litros</label>
-                            <input type="text" id="input-piq_litros" readonly onclick="setActiveField('piq_litros')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            <label class="block text-[9px] font-extrabold text-slate-600 text-center uppercase">Litros</label>
+                            <input type="text" id="input-piq_litros" readonly onclick="setActiveField('piq_litros')" class="w-full text-center font-black text-xs py-0.5 rounded border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">EC</label>
-                            <input type="text" id="input-piq_ec" readonly onclick="setActiveField('piq_ec')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            <label class="block text-[9px] font-extrabold text-slate-600 text-center uppercase">EC</label>
+                            <input type="text" id="input-piq_ec" readonly onclick="setActiveField('piq_ec')" class="w-full text-center font-black text-xs py-0.5 rounded border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">pH</label>
-                            <input type="text" id="input-piq_ph" readonly onclick="setActiveField('piq_ph')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            <label class="block text-[9px] font-extrabold text-slate-600 text-center uppercase">pH</label>
+                            <input type="text" id="input-piq_ph" readonly onclick="setActiveField('piq_ph')" class="w-full text-center font-black text-xs py-0.5 rounded border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
                         </div>
                     </div>
                 </div>
 
                 <!-- LINHA 2: BALDE 1 -->
-                <div class="bg-blue-50/80 px-2.5 py-1.5 rounded-xl border border-blue-200 shadow-sm">
-                    <div class="flex justify-between items-center border-b border-blue-200/60 pb-0.5 mb-1">
-                        <span class="font-bold text-blue-900 text-[11px] flex items-center gap-1"><i class="fa-solid fa-bucket text-blue-600"></i> LINHA 2: BALDE 1</span>
-                        <span id="live-dr1" class="text-[10px] font-black bg-blue-200 text-blue-900 px-1.5 py-0.2 rounded">DR1: 0%</span>
+                <div class="bg-blue-50/90 px-2 py-1 rounded-lg border border-blue-200 shadow-sm">
+                    <div class="flex justify-between items-center border-b border-blue-200/60 pb-0.5 mb-0.5">
+                        <span class="font-bold text-blue-900 text-[10px] flex items-center gap-1"><i class="fa-solid fa-bucket text-blue-600"></i> LINHA 2: BALDE 1</span>
+                        <span id="live-dr1" class="text-[9px] font-black bg-blue-200 text-blue-900 px-1.5 py-0.2 rounded">DR1: 0%</span>
                     </div>
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="grid grid-cols-3 gap-1.5">
                         <div>
-                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">Litros</label>
-                            <input type="text" id="input-b1_litros" readonly onclick="setActiveField('b1_litros')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            <label class="block text-[9px] font-extrabold text-slate-600 text-center uppercase">Litros</label>
+                            <input type="text" id="input-b1_litros" readonly onclick="setActiveField('b1_litros')" class="w-full text-center font-black text-xs py-0.5 rounded border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">EC</label>
-                            <input type="text" id="input-b1_ec" readonly onclick="setActiveField('b1_ec')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            <label class="block text-[9px] font-extrabold text-slate-600 text-center uppercase">EC</label>
+                            <input type="text" id="input-b1_ec" readonly onclick="setActiveField('b1_ec')" class="w-full text-center font-black text-xs py-0.5 rounded border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">pH</label>
-                            <input type="text" id="input-b1_ph" readonly onclick="setActiveField('b1_ph')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            <label class="block text-[9px] font-extrabold text-slate-600 text-center uppercase">pH</label>
+                            <input type="text" id="input-b1_ph" readonly onclick="setActiveField('b1_ph')" class="w-full text-center font-black text-xs py-0.5 rounded border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
                         </div>
                     </div>
                 </div>
 
                 <!-- LINHA 3: BALDE 2 -->
-                <div class="bg-purple-50/80 px-2.5 py-1.5 rounded-xl border border-purple-200 shadow-sm">
-                    <div class="flex justify-between items-center border-b border-purple-200/60 pb-0.5 mb-1">
-                        <span class="font-bold text-purple-900 text-[11px] flex items-center gap-1"><i class="fa-solid fa-bucket text-purple-600"></i> LINHA 3: BALDE 2</span>
-                        <span id="live-dr2" class="text-[10px] font-black bg-purple-200 text-purple-900 px-1.5 py-0.2 rounded">DR2: 0%</span>
+                <div class="bg-purple-50/90 px-2 py-1 rounded-lg border border-purple-200 shadow-sm">
+                    <div class="flex justify-between items-center border-b border-purple-200/60 pb-0.5 mb-0.5">
+                        <span class="font-bold text-purple-900 text-[10px] flex items-center gap-1"><i class="fa-solid fa-bucket text-purple-600"></i> LINHA 3: BALDE 2</span>
+                        <span id="live-dr2" class="text-[9px] font-black bg-purple-200 text-purple-900 px-1.5 py-0.2 rounded">DR2: 0%</span>
                     </div>
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="grid grid-cols-3 gap-1.5">
                         <div>
-                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">Litros</label>
-                            <input type="text" id="input-b2_litros" readonly onclick="setActiveField('b2_litros')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            <label class="block text-[9px] font-extrabold text-slate-600 text-center uppercase">Litros</label>
+                            <input type="text" id="input-b2_litros" readonly onclick="setActiveField('b2_litros')" class="w-full text-center font-black text-xs py-0.5 rounded border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">EC</label>
-                            <input type="text" id="input-b2_ec" readonly onclick="setActiveField('b2_ec')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            <label class="block text-[9px] font-extrabold text-slate-600 text-center uppercase">EC</label>
+                            <input type="text" id="input-b2_ec" readonly onclick="setActiveField('b2_ec')" class="w-full text-center font-black text-xs py-0.5 rounded border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-extrabold text-slate-600 text-center uppercase">pH</label>
-                            <input type="text" id="input-b2_ph" readonly onclick="setActiveField('b2_ph')" class="w-full text-center font-black text-sm py-1 rounded-md border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
+                            <label class="block text-[9px] font-extrabold text-slate-600 text-center uppercase">pH</label>
+                            <input type="text" id="input-b2_ph" readonly onclick="setActiveField('b2_ph')" class="w-full text-center font-black text-xs py-0.5 rounded border border-slate-300 bg-white shadow-inner cursor-pointer" placeholder="0.0">
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- TECLADO NUMÉRICO VIRTUAL -->
-            <div class="bg-slate-200/90 p-2 rounded-2xl border border-slate-300 shadow-sm flex-shrink-0 flex flex-col gap-1.5">
-                <div class="grid grid-cols-3 gap-1.5">
+            <!-- TECLADO NUMÉRICO VIRTUAL (SUBIDO PARA ESTAR VISÍVEL SEM SCROLL) -->
+            <div class="bg-slate-200/90 p-1.5 rounded-xl border border-slate-300 shadow-sm flex-shrink-0 flex flex-col gap-1 mt-0.5">
+                <div class="grid grid-cols-3 gap-1">
                     <button onclick="keypadInput('1')" class="keypad-btn">1</button>
                     <button onclick="keypadInput('2')" class="keypad-btn">2</button>
                     <button onclick="keypadInput('3')" class="keypad-btn">3</button>
@@ -233,11 +235,11 @@
                     <button onclick="keypadBackspace()" class="keypad-btn bg-slate-600 text-white active:bg-slate-700 font-bold">⌫</button>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-1.5">
-                    <button onclick="nextField()" class="bg-slate-800 text-white font-bold py-2 px-3 rounded-lg shadow active:scale-95 transition flex items-center justify-center gap-1.5 text-xs">
+                <div class="grid grid-cols-2 gap-1">
+                    <button onclick="nextField()" class="bg-slate-800 text-white font-bold py-1.5 px-2 rounded-md shadow active:scale-95 transition flex items-center justify-center gap-1 text-[11px]">
                         Próximo Campo ➡️
                     </button>
-                    <button onclick="saveRecord()" class="bg-emerald-600 text-white font-black py-2 px-3 rounded-lg shadow-md active:scale-95 transition flex items-center justify-center gap-1.5 text-xs hover:bg-emerald-700">
+                    <button onclick="saveRecord()" class="bg-emerald-600 text-white font-black py-1.5 px-2 rounded-md shadow-md active:scale-95 transition flex items-center justify-center gap-1 text-[11px] hover:bg-emerald-700">
                         <i class="fa-solid fa-floppy-disk"></i> GUARDAR
                     </button>
                 </div>
@@ -447,11 +449,11 @@
             ['aba1', 'aba2', 'aba3', 'aba4'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
                 const btn = document.getElementById(`tab-btn-${t}`);
-                if(btn) btn.className = "flex-1 py-2 px-3 text-center border-b-2 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-1.5 whitespace-nowrap";
+                if(btn) btn.className = "flex-1 py-1.5 px-3 text-center border-b-2 border-transparent text-emerald-200 hover:text-white flex items-center justify-center gap-1.5 whitespace-nowrap";
             });
             document.getElementById(`tab-${tab}`).classList.remove('hidden');
             const activeBtn = document.getElementById(`tab-btn-${tab}`);
-            if(activeBtn) activeBtn.className = "flex-1 py-2 px-3 text-center border-b-2 border-emerald-400 text-white flex items-center justify-center gap-1.5 font-bold whitespace-nowrap";
+            if(activeBtn) activeBtn.className = "flex-1 py-1.5 px-3 text-center border-b-2 border-emerald-400 text-white flex items-center justify-center gap-1.5 font-bold whitespace-nowrap";
 
             if(tab === 'aba1') renderAba1ValveButtons();
             if(tab === 'aba3') {
