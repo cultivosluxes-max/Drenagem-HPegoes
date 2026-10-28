@@ -80,7 +80,7 @@
     </header>
 
     <!-- MAIN CONTAINER -->
-    <main class="max-w-7xl mx-auto px-2 sm:px-4 py-1.5 flex-grow w-full overflow-y-auto min-h-0 flex flex-col">
+    <main class="max-w-7xl mx-auto px-2 sm:px-4 py-1.5 pb-8 flex-grow w-full overflow-y-auto min-h-0 flex flex-col">
 
         <!-- ABA 1: VÁLVULAS & DRENAGENS DE HOJE -->
         <section id="tab-aba1" class="space-y-4">
@@ -133,7 +133,7 @@
         <!-- ABA 2: INSERÇÃO DE DADOS (VIEWPORT AJUSTÁVEL COMPACTADO NO TOPO) -->
         <section id="tab-aba2" class="h-full flex flex-col justify-start hidden space-y-1.5 max-w-xl mx-auto w-full pt-0.5">
             
-            <!-- BANNER/HEADER COMPACTO DA VÁLVULA SELECIONADA -->
+            <!-- BANNER/HEADER DA VÁLVULA SELECIONADA -->
             <div class="flex justify-between items-center bg-white px-3 py-1.5 rounded-xl border border-emerald-300 shadow-sm flex-shrink-0">
                 <div class="flex items-center gap-1.5">
                     <i class="fa-solid fa-pen-to-square text-emerald-600 text-xs"></i>
@@ -150,7 +150,7 @@
                 </button>
             </div>
 
-            <!-- BLOCO DOS INPUTS (3 LINHAS COMPACTADAS E SUBIDAS) -->
+            <!-- BLOCO DOS INPUTS (3 LINHAS COMPACTADAS) -->
             <div class="space-y-1 flex-shrink-0">
                 <!-- LINHA 1: PIQUETA -->
                 <div class="bg-emerald-50/90 px-2 py-1 rounded-lg border border-emerald-200 shadow-sm">
@@ -218,7 +218,7 @@
                 </div>
             </div>
 
-            <!-- TECLADO NUMÉRICO VIRTUAL (SUBIDO PARA ESTAR VISÍVEL SEM SCROLL) -->
+            <!-- TECLADO NUMÉRICO VIRTUAL -->
             <div class="bg-slate-200/90 p-1.5 rounded-xl border border-slate-300 shadow-sm flex-shrink-0 flex flex-col gap-1 mt-0.5">
                 <div class="grid grid-cols-3 gap-1">
                     <button onclick="keypadInput('1')" class="keypad-btn">1</button>
@@ -322,8 +322,13 @@
         </section>
     </main>
 
+    <!-- FOOTER / BANNER FIXO INFERIOR -->
+    <footer class="bg-emerald-900 text-emerald-100 text-[10px] font-bold tracking-widest text-center py-1 flex-shrink-0 z-40 border-t border-emerald-800 uppercase shadow-inner">
+        HERDADE DE PEGÕES
+    </footer>
+
     <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-2.5 transform translate-y-28 opacity-0 transition-all duration-300 z-50">
+    <div id="toast" class="fixed bottom-8 right-4 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-2.5 transform translate-y-28 opacity-0 transition-all duration-300 z-50">
         <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
         <span id="toast-msg" class="text-xs font-bold">Sucesso!</span>
     </div>
@@ -346,7 +351,7 @@
 
         window.onload = function() {
             loadPiquetasConfig();
-            loadRecords(); // Carrega da cache local (localStorage) primeiro
+            loadRecords();
             renderAba1ValveButtons();
             renderPiquetasConfigUI();
             setActiveField('piq_litros');
@@ -358,8 +363,6 @@
 
             renderTodayTable();
             initChart();
-
-            // Sincroniza em tempo real com o Google Sheets
             fetchFromCloud();
         };
 
@@ -370,15 +373,15 @@
             const text = document.getElementById('sync-text');
 
             if (status === 'syncing') {
-                container.className = "cursor-wait text-[11px] bg-amber-600 text-white font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-inner select-none";
+                container.className = "cursor-wait text-[10px] bg-amber-600 text-white font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-inner select-none";
                 icon.className = "fa-solid fa-rotate animate-spin text-amber-200";
                 text.innerText = message || "A sincronizar...";
             } else if (status === 'success') {
-                container.className = "cursor-pointer text-[11px] bg-emerald-700 hover:bg-emerald-600 active:scale-95 transition text-white font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-inner select-none";
+                container.className = "cursor-pointer text-[10px] bg-emerald-700 hover:bg-emerald-600 active:scale-95 transition text-white font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-inner select-none";
                 icon.className = "fa-solid fa-cloud-arrow-up text-emerald-300";
                 text.innerText = message || "Sincronizado";
             } else if (status === 'error') {
-                container.className = "cursor-pointer text-[11px] bg-rose-700 hover:bg-rose-600 active:scale-95 transition text-white font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-inner select-none";
+                container.className = "cursor-pointer text-[10px] bg-rose-700 hover:bg-rose-600 active:scale-95 transition text-white font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-inner select-none";
                 icon.className = "fa-solid fa-triangle-exclamation text-rose-300";
                 text.innerText = message || "Modo Offline";
             }
